@@ -1,0 +1,40 @@
+server:
+  port: 8081
+  servlet:
+    encoding:
+      force-response: true
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${db.url:jdbc:mysql://localhost:3307/demo?allowPublicKeyRetrieval=true}
+    username: ${db.username:root}
+    password: ${db.password:root}
+    hikari: # Hikari Pool, Connection Pool
+      connectionTimeout: 10000
+      idleTimeout: 600000
+      maximum-pool-size: 300
+      minimum-idle: 5
+      maxLifetime: 100000
+      leak-detection-threshold: 2000
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+
+jwt:
+  # 시크릿 키는 Git에 공개하지 않아야 합니다.(현재는 임시 허용)
+  secret: T3h2U1FzY3Z0c3FqZ3R5bXQ1eG5kdXh2c3c4eW9mdG5q
+  access-token-expiration: 3600
+
+logging:
+  level:
+    #    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
