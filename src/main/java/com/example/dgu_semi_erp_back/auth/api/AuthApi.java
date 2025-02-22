@@ -1,19 +1,13 @@
 package com.example.dgu_semi_erp_back.auth.api;
 
-import com.example.dgu_semi_erp_back.auth.dto.SignInRequest;
-import com.example.dgu_semi_erp_back.auth.dto.SignUpRequest;
-import com.example.dgu_semi_erp_back.auth.dto.SignUpResponse;
-import com.example.dgu_semi_erp_back.auth.dto.TokenResponse;
+import com.example.dgu_semi_erp_back.auth.dto.*;
 import com.example.dgu_semi_erp_back.auth.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,16 +15,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthApi {
     private final AuthService authService;
 
-    @PostMapping("/signUp")
-    public ResponseEntity<SignUpResponse> signUp(@RequestBody SignUpRequest request) {
-        // 사용자가 입력한 사용자 이름이 이미 존재하는지 확인
-        if (authService.findByUsername(request.username()).isPresent()) {
-            throw new IllegalArgumentException("이미 사용 중인 사용자 이름입니다.");
-        }
+    @PostMapping("/request-otp")
+    public ResponseEntity<String> requestOtp(@RequestParam String email) throws Exception {
+        var otpRequestToken = authService.sendOtp(email);
+        return ResponseEntity.ok(otpRequestToken);
+    }
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(authService.signUp(request));
+    @PostMapping("/verify-otp")
+    public ResponseEntity<String> verifyOtp(@RequestBody VerifyOtpRequest verifyOtpRequest) {
+        var otpVerificationToken = authService.verifyOtp(verifyOtpRequest);
+        return ResponseEntity.ok(otpVerificationToken);
+    }
+
+    @PostMapping("/signUp")
+    public ResponseEntity<Void> signUp(@RequestBody SignUpRequest signUpRequest) {
+        authService.registerUser(signUpRequest);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/signIn")

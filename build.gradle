@@ -37,6 +37,9 @@ dependencies {
 
 	// CRYPTO
 	implementation 'org.springframework.security:spring-security-crypto:6.4.2'
+
+	// Spring Email
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-mail', version: '3.4.1'
 }
 
 tasks.named('test') {

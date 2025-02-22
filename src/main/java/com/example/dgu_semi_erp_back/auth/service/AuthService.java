@@ -2,12 +2,15 @@ package com.example.dgu_semi_erp_back.auth.service;
 
 import com.example.dgu_semi_erp_back.auth.dto.SignInRequest;
 import com.example.dgu_semi_erp_back.auth.dto.SignUpRequest;
-import com.example.dgu_semi_erp_back.auth.dto.SignUpResponse;
 import com.example.dgu_semi_erp_back.auth.dto.TokenResponse;
+import com.example.dgu_semi_erp_back.auth.dto.VerifyOtpRequest;
 import com.example.dgu_semi_erp_back.auth.entity.RefreshToken;
+import com.example.dgu_semi_erp_back.auth.entity.Role;
 import com.example.dgu_semi_erp_back.auth.entity.User;
+import com.example.dgu_semi_erp_back.auth.entity.VerifiedEmail;
 import com.example.dgu_semi_erp_back.auth.repository.RefreshTokenRepository;
 import com.example.dgu_semi_erp_back.auth.repository.UserRepository;
+import com.example.dgu_semi_erp_back.auth.repository.VerifiedEmailRepository;
 import com.example.dgu_semi_erp_back.common.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCrypt;
@@ -15,6 +18,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -24,32 +30,107 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final VerifiedEmailRepository verifiedEmailRepository;
+    private final EmailService emailService;
 
-    @Transactional(readOnly = true)
-    public Optional<User> findByUsername(String username) {
-        return userRepository.findByUsername(username);
+    @Transactional
+    public String sendOtp(String email) throws Exception {
+        if (userRepository.existsByEmail(email)) {
+            throw new RuntimeException("이미 가입된 이메일입니다.");
+        }
+
+        // OTP 생성
+        String otp = emailService.generateOtp();
+
+        // 특정 OTP 요청에 대한 식별용 토큰(Secure Random) 생성
+        String otpRequestToken = createSecureOtpToken();
+
+        // 만료 시간 생성
+        LocalDateTime expiryTime = LocalDateTime.now().plusMinutes(5);
+
+        VerifiedEmail verifiedEmail = VerifiedEmail.builder()
+                .email(email)
+                .otp(otp)
+                .otpRequestToken(otpRequestToken)
+                .otpExpiry(expiryTime)
+                .build();
+
+        verifiedEmailRepository.save(verifiedEmail);
+        emailService.sendOtpEmail(email, otp); // 이메일 발송
+
+        return otpRequestToken;
     }
 
     @Transactional
-    public SignUpResponse signUp(SignUpRequest request) {
-        // 새로운 사용자 객체 생성
-        User newUser = User.builder()
-                .username(request.username())
-                .password(BCrypt.hashpw(request.password(), BCrypt.gensalt()))
-                .email(request.email())
-                .nickname(request.nickname())
-                .role(request.role())
+    public String verifyOtp(VerifyOtpRequest verifyOtpRequest) {
+        VerifiedEmail fetchedVerifiedEmail = verifiedEmailRepository.findByEmail(verifyOtpRequest.email())
+                .orElseThrow(() -> new NoSuchElementException("이메일이 존재하지 않습니다."));
+
+        // OTP Request Token 검증
+        if (!fetchedVerifiedEmail.getOtpRequestToken().equals(verifyOtpRequest.otpRequestToken())) {
+            throw new RuntimeException("잘못된 요청입니다. 다시 시도해주세요.");
+        }
+
+        // OTP 만료 확인
+        if (fetchedVerifiedEmail.getOtpExpiry().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("OTP가 만료되었습니다.");
+        }
+
+        // OTP 일치 여부 확인
+        if (!fetchedVerifiedEmail.getOtp().equals(verifyOtpRequest.otp())) {
+            throw new RuntimeException("잘못된 OTP입니다.");
+        }
+
+        // 인증 완료 후 토큰(Secure Token) 발급
+        String otpVerificationToken = createSecureOtpToken();
+
+        VerifiedEmail verifiedEmail = VerifiedEmail.builder()
+                .id(fetchedVerifiedEmail.getId())
+                .email(fetchedVerifiedEmail.getEmail())
+                .otp(fetchedVerifiedEmail.getOtp())
+                .otpRequestToken(verifyOtpRequest.otpRequestToken())
+                .otpVerificationToken(otpVerificationToken) // 발급된 토큰 저장
+                .otpExpiry(fetchedVerifiedEmail.getOtpExpiry())
                 .build();
 
-        // 사용자 정보 저장(DB)
-        User userPs = userRepository.save(newUser);
+        verifiedEmailRepository.save(verifiedEmail);
 
-        return SignUpResponse.builder()
-                .userName(userPs.getUsername())
-                .nickName(userPs.getNickname())
-                .message("회원가입이 완료되었습니다.")
-                .build();
+        return otpVerificationToken;
     }
+
+    @Transactional
+    public void registerUser(SignUpRequest signUpRequest) {
+        VerifiedEmail fetchedVerifiedEmail = verifiedEmailRepository.findByEmail(signUpRequest.email())
+                .orElseThrow(() ->  new NoSuchElementException("이메일 인증이 필요합니다."));
+
+        // 토큰 검증
+        if (!fetchedVerifiedEmail.getOtpVerificationToken().equals(signUpRequest.otpVerificationToken())) {
+            throw new RuntimeException("잘못된 인증 토큰입니다.");
+        }
+
+        User user = User.builder()
+                .username(signUpRequest.username())
+                .password(BCrypt.hashpw(signUpRequest.password(), BCrypt.gensalt()))
+                .email(signUpRequest.email())
+                .nickname(signUpRequest.nickname())
+                .role(Role.USER)
+                .isVerified(true)
+                .build();
+
+        userRepository.save(user); // 유저 정보 저장
+        verifiedEmailRepository.delete(fetchedVerifiedEmail); // 인증 정보 삭제
+    }
+
+    public String createSecureOtpToken() {
+        // 랜덤 바이트 생성을 위해 SecureRandom 사용
+        SecureRandom secureRandom = new SecureRandom();
+        byte[] randomBytes = new byte[32]; // 256 bits (32 bytes)
+        secureRandom.nextBytes(randomBytes);
+
+        // 생성된 랜덤 바이트를 Base64로 인코딩하여 문자열로 변환
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+    }
+
 
     @Transactional
     public TokenResponse signIn(SignInRequest request) {

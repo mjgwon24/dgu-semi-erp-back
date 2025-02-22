@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 @Getter
 @Builder
@@ -33,4 +34,8 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING) // Enum을 문자열로 저장
     @Column(nullable = false)
     private Role role; // 역할 추가
+
+    @ColumnDefault("false")
+    @Column(columnDefinition = "TINYINT(1)")
+    private boolean isVerified; // 이메일 인증 여부
 }
