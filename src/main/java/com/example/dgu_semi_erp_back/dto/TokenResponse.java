@@ -1,4 +1,4 @@
-package com.example.dgu_semi_erp_back.auth.dto;
+package com.example.dgu_semi_erp_back.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;

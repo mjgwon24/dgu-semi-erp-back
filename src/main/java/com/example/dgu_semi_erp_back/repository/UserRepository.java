@@ -1,4 +1,4 @@
-package com.example.dgu_semi_erp_back.auth.repository;
+package com.example.dgu_semi_erp_back.repository;
 
 import com.example.dgu_semi_erp_back.auth.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;

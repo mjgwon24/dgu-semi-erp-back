@@ -1,4 +1,4 @@
-package com.example.dgu_semi_erp_back.auth.service;
+package com.example.dgu_semi_erp_back.service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;

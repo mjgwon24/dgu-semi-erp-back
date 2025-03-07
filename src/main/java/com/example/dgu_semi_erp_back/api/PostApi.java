@@ -1,4 +1,4 @@
-package com.example.dgu_semi_erp_back.post;
+package com.example.dgu_semi_erp_back.api;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

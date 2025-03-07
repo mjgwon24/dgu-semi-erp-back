@@ -1,7 +1,10 @@
-package com.example.dgu_semi_erp_back.auth.api;
+package com.example.dgu_semi_erp_back.api;
 
-import com.example.dgu_semi_erp_back.auth.dto.*;
-import com.example.dgu_semi_erp_back.auth.service.AuthService;
+import com.example.dgu_semi_erp_back.service.AuthService;
+import com.example.dgu_semi_erp_back.dto.SignInRequest;
+import com.example.dgu_semi_erp_back.dto.SignUpRequest;
+import com.example.dgu_semi_erp_back.dto.TokenResponse;
+import com.example.dgu_semi_erp_back.dto.VerifyOtpRequest;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
