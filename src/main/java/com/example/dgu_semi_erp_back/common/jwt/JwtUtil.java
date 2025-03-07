@@ -1,6 +1,6 @@
 package com.example.dgu_semi_erp_back.common.jwt;
 
-import com.example.dgu_semi_erp_back.auth.entity.User;
+import com.example.dgu_semi_erp_back.entity.User.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;

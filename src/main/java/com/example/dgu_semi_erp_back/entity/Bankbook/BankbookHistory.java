@@ -1,4 +1,5 @@
-package com.example.dgu_semi_erp_back.entity;
+package com.example.dgu_semi_erp_back.entity.Bankbook;
+import com.example.dgu_semi_erp_back.entity.Club.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

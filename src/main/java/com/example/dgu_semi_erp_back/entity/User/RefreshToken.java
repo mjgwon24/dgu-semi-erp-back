@@ -1,6 +1,5 @@
-package com.example.dgu_semi_erp_back.entity;
+package com.example.dgu_semi_erp_back.entity.User;
 
-import com.example.dgu_semi_erp_back.auth.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

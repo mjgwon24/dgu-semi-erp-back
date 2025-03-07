@@ -1,7 +1,7 @@
-package com.example.dgu_semi_erp_back.entity;
+package com.example.dgu_semi_erp_back.entity.User;
 
 import com.example.dgu_semi_erp_back.common.support.BaseEntity;
-import com.example.dgu_semi_erp_back.entity.Role;
+import com.example.dgu_semi_erp_back.entity.Club.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

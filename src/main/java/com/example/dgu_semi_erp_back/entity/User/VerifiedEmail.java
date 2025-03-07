@@ -1,4 +1,4 @@
-package com.example.dgu_semi_erp_back.entity;
+package com.example.dgu_semi_erp_back.entity.User;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
