@@ -16,15 +16,15 @@ import java.time.LocalDateTime;
 public class Announcement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    private int announcement_id;
+    private int announcementId;
 
-    @JoinColumn(name = "club_id")
-    private int club_id;
+    @JoinColumn(name = "clubId")
+    private int clubId;
 
     @Column(nullable = false)
-    private LocalDateTime create_at;
+    private LocalDateTime createAt;
     @Column(nullable = false)
-    private LocalDateTime update_at;
+    private LocalDateTime updateAt;
     @Column(nullable = false)
     private String title;
     @Column(nullable = false)
