@@ -15,5 +15,16 @@ import java.time.LocalDateTime;
 public class BudgetReport {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    private int budget_report_id;
+    private int budgetReportId;
+    @JoinColumn(name = "budgetUsageId")
+    private int budgetUsageId;
+
+    @Column(nullable = false)
+    private String executeType;
+
+    private int clubId;
+    private String content;
+    private int ownerId;
+    private LocalDateTime createAt;
+    private int usedAmount;
 }

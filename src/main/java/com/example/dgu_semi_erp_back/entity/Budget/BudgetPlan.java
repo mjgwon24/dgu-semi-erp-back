@@ -16,13 +16,13 @@ import java.time.LocalDateTime;
 public class BudgetPlan {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    private int budget_plan_id;
+    private int budgetPlanId;
 
-    @JoinColumn(name = "club_id")
-    private int club_id;
+    @JoinColumn(name = "clubId")
+    private int clubId;
 
     @Column(nullable = false)
-    private ExecuteType Execute_type;
+    private String executeType;
 
     @Column(nullable = false)
     private String content;
@@ -31,16 +31,16 @@ public class BudgetPlan {
     private int owner;
 
     @Column(nullable = false)
-    private LocalDateTime create_at;
+    private LocalDateTime createAt;
 
     @Column(nullable = false)
-    private LocalDateTime payment_date;
+    private LocalDateTime paymentDate;
 
     @Column(nullable = false)
     private int amount;
 
     @Column(nullable = false)
-    private BudgetStatus Status;
+    private BudgetStatus status;
 
 
 

@@ -3,4 +3,7 @@ package com.example.dgu_semi_erp_back.entity.Budget;
 //승인
 //반려
 public enum BudgetStatus {
+    HOLD,
+    ACCEPTED,
+    REJECTED,
 }
