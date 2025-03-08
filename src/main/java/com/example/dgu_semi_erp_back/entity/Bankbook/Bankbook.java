@@ -16,10 +16,10 @@ import java.time.LocalDateTime;
 public class Bankbook {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    private int bankbook_id;
+    private int bankbookId;
 
-    @JoinColumn(name = "club_id")
-    private int club_id;
+    @JoinColumn(name = "clubId")
+    private int clubId;
 
     //통장 소유자
     @Column(nullable = false)
@@ -30,7 +30,7 @@ public class Bankbook {
     private int number;
 
     @Column(nullable = false)
-    private LocalDateTime create_at;
+    private LocalDateTime createAt;
 
 
 

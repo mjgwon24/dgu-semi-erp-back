@@ -16,10 +16,10 @@ import java.time.LocalDateTime;
 public class BankbookHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    private int bankbook_history_id;
+    private int bankbookHistoryId;
 
-    @JoinColumn(name = "bankbook_id")
-    private int bankbook_id;
+    @JoinColumn(name = "bankbookId")
+    private int bankbookId;
 
     @Enumerated(EnumType.STRING) // Enum을 문자열로 저장
     @Column(nullable = false)
@@ -35,7 +35,7 @@ public class BankbookHistory {
     private int amount;
 
     @Column(nullable = false)
-    private int used_amount;
+    private int usedAmount;
 
 
 }
