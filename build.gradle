@@ -40,6 +40,9 @@ dependencies {
 
 	// Spring Email
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-mail', version: '3.4.1'
+
+	// Buket4j
+	implementation group: 'com.github.vladimir-bukhtoyarov', name: 'bucket4j-core', version: '7.6.0'
 }
 
 tasks.named('test') {
