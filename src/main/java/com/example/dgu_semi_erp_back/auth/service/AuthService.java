@@ -1,13 +1,8 @@
 package com.example.dgu_semi_erp_back.auth.service;
 
-import com.example.dgu_semi_erp_back.auth.dto.SignInRequest;
-import com.example.dgu_semi_erp_back.auth.dto.SignUpRequest;
-import com.example.dgu_semi_erp_back.auth.dto.TokenResponse;
-import com.example.dgu_semi_erp_back.auth.dto.VerifyOtpRequest;
-import com.example.dgu_semi_erp_back.auth.entity.RefreshToken;
-import com.example.dgu_semi_erp_back.auth.entity.Role;
-import com.example.dgu_semi_erp_back.auth.entity.User;
-import com.example.dgu_semi_erp_back.auth.entity.VerifiedEmail;
+import com.example.dgu_semi_erp_back.auth.dto.*;
+import com.example.dgu_semi_erp_back.auth.entity.*;
+import com.example.dgu_semi_erp_back.auth.repository.RefreshTokenHistoryRepository;
 import com.example.dgu_semi_erp_back.auth.repository.RefreshTokenRepository;
 import com.example.dgu_semi_erp_back.auth.repository.UserRepository;
 import com.example.dgu_semi_erp_back.auth.repository.VerifiedEmailRepository;
@@ -19,10 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +25,8 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenHistoryRepository refreshTokenHistoryRepository;
+    private final TokenManagementService tokenManagementService;
     private final VerifiedEmailRepository verifiedEmailRepository;
     private final EmailService emailService;
 
@@ -143,23 +140,32 @@ public class AuthService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 
-        // 주어진 사용자에 대한 리프레시 토큰이 DB에 존재하는지 확인하고, 존재할 경우 해당 리프레시 토큰 삭제(DB)
-        Optional<RefreshToken> existingRefreshToken = refreshTokenRepository.findByUser(user);
-        existingRefreshToken.ifPresent(refreshTokenRepository::delete);
+        // 기존 리프레시 토큰이 존재하는 경우, 사용 이력을 저장하고 토큰을 삭제
+        refreshTokenRepository.findByUser(user).ifPresent(existingToken -> {
+            RefreshTokenHistory history = RefreshTokenHistory.builder()
+                    .user(user)
+                    .token(existingToken.getToken())
+                    .usedAt(Instant.now())
+                    .expiryDate(existingToken.getExpiryDate())
+                    .build();
 
-        // 새로운 액세스 토큰 생성
+            refreshTokenHistoryRepository.save(history);
+            refreshTokenRepository.delete(existingToken);
+        });
+
+        // 새로운 액세스 토큰 및 리프레시 토큰 생성
         String accessToken = jwtUtil.createAccessToken(user);
-
-        // 새로운 리프레시 토큰 생성
         String refreshToken = jwtUtil.createRefreshToken(user);
 
-        RefreshToken refreshTokenEntity = RefreshToken.builder()
+        // 해싱된 리프레시 토큰 생성(DB 저장용)
+        RefreshToken hashedRefreshToken = RefreshToken.builder()
                 .user(user)
-                .token(refreshToken)
+                .token(BCrypt.hashpw(refreshToken, BCrypt.gensalt()))
+                .expiryDate(Instant.now().plusSeconds(7 * 24 * 60 * 60)) // 7일 후 만료
                 .build();
 
-        // 리프레시 토큰 저장(DB)
-        refreshTokenRepository.save(refreshTokenEntity);
+        // 해싱된 리프레시 토큰 저장(DB)
+        refreshTokenRepository.save(hashedRefreshToken);
 
         return TokenResponse.builder()
                 .accessToken(accessToken)
@@ -168,27 +174,59 @@ public class AuthService {
     }
 
     @Transactional
-    public TokenResponse reissueRefreshToken(String token) {
-        // 리프레시 토큰이 DB에 존재하는지 확인하고, 존재하지 않으면 예외를 발생
-        RefreshToken existingRefreshToken = refreshTokenRepository.findByToken(token)
+    public TokenResponse reissueRefreshToken(ReissueRefreshTokenRequest request) {
+        // 사용자 이름으로 DB에서 사용자 조회
+        User existingUser = userRepository.findByUsername(request.username())
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 사용자입니다."));
+
+        // 주어진 토큰이 만료된 리프레시 토큰 기록에 존재하는지 확인
+        refreshTokenHistoryRepository.findByToken(request.token())
+                .ifPresent(refreshTokenHistory -> {
+                    // 리프레시 토큰 재사용 처리 (재사용 횟수 증가 및 해당 유저의 모든 리프레시 토큰 삭제)
+                    tokenManagementService.handleRefreshTokenReuse(refreshTokenHistory);
+
+                    throw new IllegalArgumentException("사용 또는 만료 처리된 리프레시 토큰이 재사용 되었습니다.");
+                });
+
+        // 해당 사용자의 모든 리프레시 토큰을 가져온 후, 해시된 값 비교
+        RefreshToken existingRefreshToken = refreshTokenRepository.findByUser(existingUser)
+                .stream()
+                .filter(refreshToken -> BCrypt.checkpw(request.token(), refreshToken.getToken()))
+                .findFirst()
                 .orElseThrow(() -> new NoSuchElementException("리프레시 토큰이 존재하지 않습니다."));
 
-        // 사용자 정보 추출
-        User user = existingRefreshToken.getUser();
+        // 리프레시 토큰 만료 여부 체크
+        if (existingRefreshToken.isExpired()) {
+            throw new IllegalArgumentException("리프레시 토큰이 만료되었습니다.");
+        }
 
-        // 새로운 액세스 토큰 및 리프레시 토큰 생성
-        String newAccessToken = jwtUtil.createAccessToken(user);
-        String newRefreshToken = jwtUtil.createRefreshToken(user);
-
-        RefreshToken createdRefreshToken = RefreshToken.builder()
-                .user(user)
-                .token(newRefreshToken)
+        // 기존 리프레시 토큰 사용 기록 객체 생성
+        RefreshTokenHistory refreshTokenHistory = RefreshTokenHistory.builder()
+                .user(existingUser)
+                .token(request.token())
+                .usedAt(Instant.now())
+                .expiryDate(existingRefreshToken.getExpiryDate())
                 .build();
 
-        // 리프레시 토큰 저장(DB)
-        refreshTokenRepository.save(createdRefreshToken);
-        // 기존 리프레시 토큰 삭제(DB)
+        // 기존 리프레시 토큰 사용 기록 저장
+        refreshTokenHistoryRepository.save(refreshTokenHistory);
+
+        // 기존 리프레시 토큰 삭제(재사용 방지)
         refreshTokenRepository.delete(existingRefreshToken);
+
+        // 새로운 액세스 토큰 및 리프레시 토큰 생성
+        String newAccessToken = jwtUtil.createAccessToken(existingUser);
+        String newRefreshToken = jwtUtil.createRefreshToken(existingUser);
+
+        // 해싱된 리프레시 토큰 생성(DB 저장용)
+        RefreshToken hashedRefreshToken = RefreshToken.builder()
+                .user(existingUser)
+                .token(BCrypt.hashpw(newRefreshToken, BCrypt.gensalt()))
+                .expiryDate(Instant.now().plusSeconds(7 * 24 * 60 * 60)) // 7일
+                .build();
+
+        // 해싱된 리프레시 토큰 저장(DB)
+        refreshTokenRepository.save(hashedRefreshToken);
 
         return TokenResponse.builder()
                 .accessToken(newAccessToken)

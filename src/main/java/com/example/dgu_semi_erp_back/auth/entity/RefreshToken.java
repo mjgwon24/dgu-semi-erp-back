@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 @Getter
 @Builder
 @AllArgsConstructor
@@ -16,14 +18,17 @@ public class RefreshToken {
     @Id
     private Long id;
 
-    @Column
-    private String token;
-
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 
-    public void updateToken(String token) {
-        this.token = token;
+    @Column
+    private String token;
+
+    @Column(nullable = false)
+    private Instant expiryDate;
+
+    public boolean isExpired() {
+        return Instant.now().isAfter(this.expiryDate);
     }
 }

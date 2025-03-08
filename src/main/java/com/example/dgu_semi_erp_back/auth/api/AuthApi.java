@@ -51,9 +51,12 @@ public class AuthApi {
     }
 
     @PostMapping("/refreshToken")
-    public ResponseEntity<TokenResponse> reissueRefreshToken(@RequestBody String token, HttpServletResponse response) {
+    public ResponseEntity<TokenResponse> reissueRefreshToken(
+            @RequestBody ReissueRefreshTokenRequest reissueRefreshTokenRequest,
+            HttpServletResponse response
+    ) {
         // 리프레시 토큰이 DB에 존재하는지 확인하고, 존재할 경우 새로운 액세스 토큰과 리프레시 토큰을 생성
-        TokenResponse tokenResponse = authService.reissueRefreshToken(token);
+        TokenResponse tokenResponse = authService.reissueRefreshToken(reissueRefreshTokenRequest);
 
         // 리프레시 토큰을 쿠키에 저장
         Cookie cookie = createCookie(tokenResponse.refreshToken());
