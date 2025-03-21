@@ -13,20 +13,15 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class BankbookHistory {
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class AccountHistory {
     @Id
-    private int bankbookHistoryId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "account_history_id")
+    private int id;
 
-    @JoinColumn(name = "bankbookId")
-    private int bankbookId;
-
-    @Enumerated(EnumType.STRING) // Enum을 문자열로 저장
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role; // 역할 추가
-
-    @Column(nullable = false)
-    private LocalDateTime date;
 
     @Column(nullable = false)
     private String content;
@@ -37,5 +32,10 @@ public class BankbookHistory {
     @Column(nullable = false)
     private int usedAmount;
 
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", nullable = false)
+    private Account account;
 }

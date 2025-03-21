@@ -14,34 +14,32 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 public class BudgetPlan {
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    private int budgetPlanId;
-
-    @JoinColumn(name = "clubId")
-    private int clubId;
-
-    @Column(nullable = false)
-    private String executeType;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "budget_plan_id")
+    private int id;
 
     @Column(nullable = false)
-    private String content;
+    private String executeType; // 집행 유형
 
     @Column(nullable = false)
-    private int owner;
+    private PaymentType paymentType; // 결제 타입
 
     @Column(nullable = false)
-    private LocalDateTime createAt;
+    private LocalDateTime paymentDate; // 결제일
 
     @Column(nullable = false)
-    private LocalDateTime paymentDate;
+    private String content; // 내용
 
     @Column(nullable = false)
-    private int amount;
+    private String owner; // 기안자
+
+    @Column(nullable = false)
+    private int amount; // 금액
 
     @Column(nullable = false)
     private BudgetStatus status;
 
-
-
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
 }

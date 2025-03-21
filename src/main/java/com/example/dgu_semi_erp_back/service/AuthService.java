@@ -6,7 +6,7 @@ import com.example.dgu_semi_erp_back.dto.TokenResponse;
 import com.example.dgu_semi_erp_back.dto.VerifyOtpRequest;
 import com.example.dgu_semi_erp_back.entity.User.RefreshToken;
 import com.example.dgu_semi_erp_back.entity.Club.Role;
-import com.example.dgu_semi_erp_back.auth.entity.User;
+import com.example.dgu_semi_erp_back.entity.User.User;
 import com.example.dgu_semi_erp_back.entity.User.VerifiedEmail;
 import com.example.dgu_semi_erp_back.repository.RefreshTokenRepository;
 import com.example.dgu_semi_erp_back.repository.UserRepository;

@@ -1,4 +1,4 @@
-package com.example.dgu_semi_erp_back.entity.Notification;
+package com.example.dgu_semi_erp_back.entity.Bankbook;
 
 import com.example.dgu_semi_erp_back.entity.Club.Club;
 import com.example.dgu_semi_erp_back.entity.User.User;
@@ -9,34 +9,34 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-
-public class Notification {
+public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "notification_id")
+    @Column(name = "account_id")
     private int id;
 
-    private String title;
+    @Column(nullable = false)
+    private int number; // 계좌번호
 
-    private String content;
-
-    private String category;
-
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    private Boolean isRead; // 읽음 여부
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "club_id", nullable = false)
     private Club club;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AccountHistory> accountHistories = new ArrayList<>();
 }
