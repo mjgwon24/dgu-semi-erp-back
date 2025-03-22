@@ -25,9 +25,10 @@ public class Announcement {
     @Column(nullable = false)
     private String content; // 내용
 
-    private int viewCount; // 조회수
-
+    @Column(nullable = false)
     private String owner; // 작성자
+
+    private int viewCount; // 조회수
 
     private String file;
 
