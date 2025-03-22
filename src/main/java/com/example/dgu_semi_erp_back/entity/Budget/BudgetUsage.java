@@ -8,9 +8,9 @@ public class BudgetUsage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "budget_usage_id")
-    private int Long;
+    private Long id;
     @Column(nullable = false)
-    private String executeType; // 결제 타입
+    private String executeType; // 집행 유형
 
     @Column(nullable = false)
     private PaymentType paymentType; // 결제 타입
@@ -22,10 +22,16 @@ public class BudgetUsage {
     private String content; // 내용
 
     @Column(nullable = false)
-    private String owner; // 기안자
+    private String author; // 기안자
 
     @Column(nullable = false)
-    private int amount; // 금액
+    private int paymentAmount; // 금액
+
+    @Column(nullable = false)
+    private String usageReviewer; // 검토자
+
+    @Column(nullable = false)
+    private String usageApprover; // 승인자
 
     @Column(nullable = false)
     private BudgetStatus status;

@@ -19,7 +19,7 @@ public class BudgetReport {
     private Long id;
 
     @Column(nullable = false)
-    private String executeType; // 결제 타입
+    private String executeType; // 집행 유형
 
     @Column(nullable = false)
     private PaymentType paymentType; // 결제 타입
@@ -31,10 +31,10 @@ public class BudgetReport {
     private String content; // 내용
 
     @Column(nullable = false)
-    private String owner; // 기안자
+    private String author; // 기안자
 
     @Column(nullable = false)
-    private int amount; // 금액
+    private int paymentAmount; // 금액
 
     @Column(nullable = false)
     private BudgetStatus status;

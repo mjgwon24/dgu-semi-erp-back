@@ -26,15 +26,17 @@ public class Announcement {
     private String content; // 내용
 
     @Column(nullable = false)
-    private String owner; // 작성자
+    private String author; // 작성자
 
     private int viewCount; // 조회수
 
-    private String file;
+    private String file; // 배열로 변경 필요
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    private LocalDateTime deletedAt;
 }

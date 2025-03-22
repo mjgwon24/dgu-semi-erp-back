@@ -1,4 +1,4 @@
-package com.example.dgu_semi_erp_back.entity.Bankbook;
+package com.example.dgu_semi_erp_back.entity.Account;
 
 import com.example.dgu_semi_erp_back.entity.Club.Club;
 import com.example.dgu_semi_erp_back.entity.User.User;
@@ -28,6 +28,11 @@ public class Account {
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+    private LocalDateTime deletedAt;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

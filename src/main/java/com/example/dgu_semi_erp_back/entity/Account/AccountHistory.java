@@ -1,4 +1,4 @@
-package com.example.dgu_semi_erp_back.entity.Bankbook;
+package com.example.dgu_semi_erp_back.entity.Account;
 import com.example.dgu_semi_erp_back.entity.Club.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -27,10 +27,10 @@ public class AccountHistory {
     private String content;
 
     @Column(nullable = false)
-    private int amount;
+    private int totalAmount; // 계좌 잔여 금액
 
     @Column(nullable = false)
-    private int usedAmount;
+    private int usedAmount; // 사용 금액
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

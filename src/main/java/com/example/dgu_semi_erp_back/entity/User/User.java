@@ -1,7 +1,7 @@
 package com.example.dgu_semi_erp_back.entity.User;
 
 import com.example.dgu_semi_erp_back.common.support.BaseEntity;
-import com.example.dgu_semi_erp_back.entity.Bankbook.Account;
+import com.example.dgu_semi_erp_back.entity.Account.Account;
 import com.example.dgu_semi_erp_back.entity.Club.ClubMember;
 import com.example.dgu_semi_erp_back.entity.Club.Role;
 import jakarta.persistence.*;

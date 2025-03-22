@@ -26,7 +26,7 @@ public class Notification {
 
     private String content;
 
-    private String category;
+    private Category category;
 
     private LocalDateTime createdAt;
 

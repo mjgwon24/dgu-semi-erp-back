@@ -32,10 +32,16 @@ public class BudgetPlan {
     private String content; // 내용
 
     @Column(nullable = false)
-    private String owner; // 기안자
+    private String author; // 기안자
 
     @Column(nullable = false)
-    private int amount; // 금액
+    private int paymentAmount; // 금액
+
+    @Column(nullable = false)
+    private String planReviewer; // 검토자
+
+    @Column(nullable = false)
+    private String planApprover; // 승인자
 
     @Column(nullable = false)
     private BudgetStatus status;
