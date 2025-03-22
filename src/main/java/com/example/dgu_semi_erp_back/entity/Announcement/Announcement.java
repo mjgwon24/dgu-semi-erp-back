@@ -17,7 +17,7 @@ public class Announcement {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "announcement_id")
-    private int id;
+    private Long id;
 
     @Column(nullable = false)
     private String title; // 제목

@@ -21,7 +21,7 @@ public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "account_id")
-    private int id;
+    private Long id;
 
     @Column(nullable = false)
     private int number; // 계좌번호

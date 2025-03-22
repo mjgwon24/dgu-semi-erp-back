@@ -17,7 +17,7 @@ public class BudgetPlan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "budget_plan_id")
-    private int id;
+    private Long id;
 
     @Column(nullable = false)
     private String executeType; // 집행 유형

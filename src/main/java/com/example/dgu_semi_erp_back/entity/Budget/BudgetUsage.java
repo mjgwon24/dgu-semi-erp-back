@@ -8,7 +8,7 @@ public class BudgetUsage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "budget_usage_id")
-    private int id;
+    private int Long;
     @Column(nullable = false)
     private String executeType; // 결제 타입
 

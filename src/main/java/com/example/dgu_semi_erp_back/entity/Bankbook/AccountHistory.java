@@ -17,7 +17,7 @@ public class AccountHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "account_history_id")
-    private int id;
+    private Long id;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

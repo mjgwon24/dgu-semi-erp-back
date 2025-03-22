@@ -16,7 +16,7 @@ public class BudgetReport {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "budget_report_id")
-    private int id;
+    private Long id;
 
     @Column(nullable = false)
     private String executeType; // 결제 타입
