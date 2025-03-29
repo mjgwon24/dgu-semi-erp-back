@@ -13,18 +13,35 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 public class BudgetReport {
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    private int budgetReportId;
-    @JoinColumn(name = "budgetUsageId")
-    private int budgetUsageId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "budget_report_id")
+    private Long id;
 
     @Column(nullable = false)
-    private String executeType;
+    private String executeType; // 집행 유형
 
-    private int clubId;
-    private String content;
-    private int ownerId;
-    private LocalDateTime createAt;
-    private int usedAmount;
+    @Column(nullable = false)
+    private PaymentType paymentType; // 결제 타입
+
+    @Column(nullable = false)
+    private LocalDateTime paymentDate; // 결제일
+
+    @Column(nullable = false)
+    private String content; // 내용
+
+    @Column(nullable = false)
+    private String author; // 기안자
+
+    @Column(nullable = false)
+    private int paymentAmount; // 금액
+
+    @Column(nullable = false)
+    private BudgetStatus status;
+
+    @Column(nullable = false)
+    private String file;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
 }

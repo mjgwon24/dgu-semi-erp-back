@@ -18,7 +18,19 @@ import java.time.LocalDateTime;
 
 public class Notification {
     @Id
-    private int notificationId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "notification_id")
+    private Long id;
+
+    private String title;
+
+    private String content;
+
+    private Category category;
+
+    private LocalDateTime createdAt;
+
+    private Boolean isRead; // 읽음 여부
 
     @ManyToOne
     @JoinColumn(name = "club_id", nullable = false)
@@ -27,13 +39,4 @@ public class Notification {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    private String title;
-    private String content;
-
-    private String category;
-
-    private LocalDateTime date;
-
-    private Boolean read;
 }
