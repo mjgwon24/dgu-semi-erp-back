@@ -23,14 +23,14 @@ public class BudgetPlanService {
 
     @Transactional
     public void createBudgetPlan(BudgetPlanCreateRequest request) {
-        BudgetPlan plan = mapper.toEntity(request, BudgetStatus.PENDING, LocalDateTime.now());
+        BudgetPlan plan = mapper.toEntity(request, BudgetStatus.HOLD, LocalDateTime.now());
         budgetPlanRepository.save(plan);
     }
 
     @Transactional(readOnly = true)
     public BudgetPlanReadResponse getBudgetPlan(Long id) {
         BudgetPlan plan = budgetPlanRepository.findById(id)
-                .filter(p -> p.getStatus() != BudgetStatus.DELETED)
+                .filter(p -> true)
                 .orElseThrow(() -> new IllegalArgumentException("예산안이 존재하지 않습니다."));
         return mapper.toReadResponse(plan);
     }
@@ -51,9 +51,9 @@ public class BudgetPlanService {
     }
 
     @Transactional
-    public void softDeleteBudgetPlan(Long id) {
+    public void deleteBudgetPlan(Long id) {
         BudgetPlan plan = budgetPlanRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("예산안이 존재하지 않습니다."));
-        plan.changeStatus(BudgetStatus.DELETED);
+        budgetPlanRepository.delete(plan);
     }
 }

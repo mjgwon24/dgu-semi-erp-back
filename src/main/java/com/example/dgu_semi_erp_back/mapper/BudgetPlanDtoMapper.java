@@ -8,15 +8,16 @@ import com.example.dgu_semi_erp_back.entity.Budget.BudgetStatus;
 import com.example.dgu_semi_erp_back.entity.Budget.PaymentType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
 
 import java.time.LocalDateTime;
 
 import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
 
-@Mapper(componentModel = SPRING)
+@Mapper(componentModel = SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface BudgetPlanDtoMapper {
-
     // Create: DTO → Entity
+    @Mapping(target = "id", ignore = true)
     BudgetPlan toEntity(BudgetPlanCreateRequest dto, BudgetStatus status, LocalDateTime createdAt);
 
     // Read: Entity → DTO
@@ -26,7 +27,8 @@ public interface BudgetPlanDtoMapper {
 
     // Update: Entity 복사 후 수정
     default BudgetPlan updateEntity(BudgetPlan plan, BudgetPlanUpdateRequest dto) {
-        return plan.toBuilder()
+        return BudgetPlan.builder()
+                .id(plan.getId())
                 .executeType(dto.executeType())
                 .paymentType(PaymentType.valueOf(dto.paymentType()))
                 .paymentDate(dto.paymentDate())
@@ -35,7 +37,8 @@ public interface BudgetPlanDtoMapper {
                 .paymentAmount(dto.paymentAmount())
                 .planReviewer(dto.planReviewer())
                 .planApprover(dto.planApprover())
-                .updatedAt(LocalDateTime.now())
+                .status(plan.getStatus())
+                .createdAt(plan.getCreatedAt())
                 .build();
     }
 }

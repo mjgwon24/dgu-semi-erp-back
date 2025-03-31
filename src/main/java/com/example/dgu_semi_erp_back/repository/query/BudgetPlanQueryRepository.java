@@ -43,8 +43,6 @@ public class BudgetPlanQueryRepository {
             builder.and(budgetPlan.paymentAmount.loe(condition.maxAmount()));
         }
 
-        builder.and(budgetPlan.status.ne(com.example.dgu_semi_erp_back.entity.Budget.BudgetStatus.DELETED));
-
         return queryFactory
                 .selectFrom(budgetPlan)
                 .where(builder)

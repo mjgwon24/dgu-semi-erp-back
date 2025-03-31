@@ -39,7 +39,7 @@ public class BudgetPlanController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void softDelete(@PathVariable Long id) {
-        budgetPlanService.softDeleteBudgetPlan(id);
+    public void delete(@PathVariable Long id) {
+        budgetPlanService.deleteBudgetPlan(id);
     }
 }
