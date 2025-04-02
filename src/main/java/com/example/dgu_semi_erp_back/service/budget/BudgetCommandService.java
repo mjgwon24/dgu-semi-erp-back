@@ -11,6 +11,7 @@ import com.example.dgu_semi_erp_back.usecase.budget.BudgetCreateUseCase;
 import com.example.dgu_semi_erp_back.usecase.budget.BudgetUpdateUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -29,6 +30,7 @@ public class BudgetCommandService implements BudgetCreateUseCase, BudgetUpdateUs
         return budgetPlanRepository.save(budgetPlan);
     }
 
+    @Transactional
     @Override
     public BudgetPlan update(Long id, BudgetPlanUpdateRequest request) {
         BudgetPlan existingPlan = budgetPlanRepository.findById(id)
@@ -36,13 +38,11 @@ public class BudgetCommandService implements BudgetCreateUseCase, BudgetUpdateUs
 
         LocalDateTime now = LocalDateTime.now();
 
-        BudgetPlan newBudgetPlan = mapper.toEntity(
-                existingPlan.getId(),
-                request,
-                request.status(),
-                existingPlan.getCreatedAt(),
-                now);
+        existingPlan.prepareUpdate()
+                .request(request)
+                .updatedAt(now)
+                .update();
 
-        return budgetPlanRepository.save(newBudgetPlan);
+        return existingPlan;
     }
 }

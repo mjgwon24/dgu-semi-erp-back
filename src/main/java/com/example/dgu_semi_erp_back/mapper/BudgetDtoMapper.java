@@ -17,12 +17,4 @@ public interface BudgetDtoMapper {
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     );
-
-    BudgetPlan toEntity(
-            Long id,
-            BudgetPlanUpdateRequest dto,
-            BudgetStatus status,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt
-    );
 }

@@ -4,10 +4,8 @@ import com.example.dgu_semi_erp_back.dto.budget.BudgetCommandDto.BudgetPlanUpdat
 import com.example.dgu_semi_erp_back.entity.budget.types.BudgetStatus;
 import com.example.dgu_semi_erp_back.entity.budget.types.PaymentType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
 
@@ -57,15 +55,21 @@ public class BudgetPlan {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    public void updateBudgetPlan(BudgetPlanUpdateRequest request) {
+    @Builder(
+            builderClassName = "UpdateBudgetPlanBuilder",
+            builderMethodName = "prepareUpdate",
+            buildMethodName = "update"
+    )
+    public void update(BudgetPlanUpdateRequest request, LocalDateTime updatedAt) {
         this.executeType = request.executeType();
         this.paymentType = request.paymentType();
         this.paymentDate = request.paymentDate();
         this.content = request.content();
+        this.author = request.author();
         this.paymentAmount = request.paymentAmount();
         this.planReviewer = request.planReviewer();
         this.planApprover = request.planApprover();
         this.status = request.status();
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = updatedAt;
     }
 }
