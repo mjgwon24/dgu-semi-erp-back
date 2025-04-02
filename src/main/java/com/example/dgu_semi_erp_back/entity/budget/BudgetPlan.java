@@ -5,7 +5,7 @@ import com.example.dgu_semi_erp_back.entity.budget.types.BudgetStatus;
 import com.example.dgu_semi_erp_back.entity.budget.types.PaymentType;
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.Accessors;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@DynamicUpdate
 public class BudgetPlan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
