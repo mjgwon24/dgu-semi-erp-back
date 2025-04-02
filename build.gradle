@@ -25,6 +25,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 	// MYSQL
@@ -43,6 +44,11 @@ dependencies {
 
 	// Buket4j
 	implementation group: 'com.github.vladimir-bukhtoyarov', name: 'bucket4j-core', version: '7.6.0'
+
+	// mapstruct
+	implementation("org.mapstruct:mapstruct:1.6.3")
+	annotationProcessor("org.mapstruct:mapstruct-processor:1.6.3")
+	annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
 }
 
 tasks.named('test') {
