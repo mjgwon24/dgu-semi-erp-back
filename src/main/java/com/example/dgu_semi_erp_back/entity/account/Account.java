@@ -24,7 +24,7 @@ public class Account {
     private Long id;
 
     @Column(nullable = false)
-    private int number; // 계좌번호
+    private String number; // 계좌번호
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
