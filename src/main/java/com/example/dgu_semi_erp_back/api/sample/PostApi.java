@@ -1,6 +1,5 @@
-package com.example.dgu_semi_erp_back.api;
+package com.example.dgu_semi_erp_back.api.sample;
 
-import com.example.dgu_semi_erp_back.usecase.budget.BudgetCreateUseCase;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

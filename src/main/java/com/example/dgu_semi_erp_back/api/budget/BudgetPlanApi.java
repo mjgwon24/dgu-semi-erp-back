@@ -1,11 +1,11 @@
-package com.example.dgu_semi_erp_back.api;
+package com.example.dgu_semi_erp_back.api.budget;
 
 import com.example.dgu_semi_erp_back.dto.budget.BudgetCommandDto.BudgetPlanUpdateRequest;
 import com.example.dgu_semi_erp_back.dto.budget.BudgetCommandDto.BudgetPlanUpdateResponse;
 import com.example.dgu_semi_erp_back.dto.budget.BudgetCommandDto.BudgetPlanCreateRequest;
 import com.example.dgu_semi_erp_back.dto.budget.BudgetCommandDto.BudgetPlanCreateResponse;
-import com.example.dgu_semi_erp_back.usecase.budget.BudgetCreateUseCase;
-import com.example.dgu_semi_erp_back.usecase.budget.BudgetUpdateUseCase;
+import com.example.dgu_semi_erp_back.usecase.budget.BudgetPlanCreateUseCase;
+import com.example.dgu_semi_erp_back.usecase.budget.BudgetPlanUpdateUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,18 +14,18 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/budget")
+@RequestMapping("/budget/plan")
 @Validated
-public class BudgetApi {
-    private final BudgetCreateUseCase budgetCreateUseCase;
-    private final BudgetUpdateUseCase budgetUpdateUseCase;
+public class BudgetPlanApi {
+    private final BudgetPlanCreateUseCase budgetPlanCreateUseCase;
+    private final BudgetPlanUpdateUseCase budgetPlanUpdateUseCase;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public BudgetPlanCreateResponse create(
             @RequestBody @Valid BudgetPlanCreateRequest request
     ) {
-        var budgetPlan = budgetCreateUseCase.create(request);
+        var budgetPlan = budgetPlanCreateUseCase.create(request);
 
         return BudgetPlanCreateResponse.builder()
                 .budgetPlan(budgetPlan)
@@ -38,7 +38,7 @@ public class BudgetApi {
             @PathVariable Long id,
             @RequestBody @Valid BudgetPlanUpdateRequest request
     ) {
-        var updatedPlan = budgetUpdateUseCase.update(id, request);
+        var updatedPlan = budgetPlanUpdateUseCase.update(id, request);
 
         return BudgetPlanUpdateResponse.builder()
                 .budgetPlan(updatedPlan)

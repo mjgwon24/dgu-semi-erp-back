@@ -1,4 +1,4 @@
-package com.example.dgu_semi_erp_back.api;
+package com.example.dgu_semi_erp_back.api.auth;
 
 import com.example.dgu_semi_erp_back.service.auth.AuthService;
 import com.example.dgu_semi_erp_back.dto.auth.SignInRequest;

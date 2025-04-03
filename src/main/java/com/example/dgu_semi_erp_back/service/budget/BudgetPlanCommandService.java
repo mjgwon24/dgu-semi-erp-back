@@ -7,8 +7,8 @@ import com.example.dgu_semi_erp_back.entity.budget.BudgetPlan;
 import com.example.dgu_semi_erp_back.entity.budget.types.BudgetStatus;
 import com.example.dgu_semi_erp_back.mapper.BudgetDtoMapper;
 import com.example.dgu_semi_erp_back.repository.budget.BudgetPlanRepository;
-import com.example.dgu_semi_erp_back.usecase.budget.BudgetCreateUseCase;
-import com.example.dgu_semi_erp_back.usecase.budget.BudgetUpdateUseCase;
+import com.example.dgu_semi_erp_back.usecase.budget.BudgetPlanCreateUseCase;
+import com.example.dgu_semi_erp_back.usecase.budget.BudgetPlanUpdateUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-public class BudgetCommandService implements BudgetCreateUseCase, BudgetUpdateUseCase {
+public class BudgetPlanCommandService implements BudgetPlanCreateUseCase, BudgetPlanUpdateUseCase {
     private final BudgetPlanRepository budgetPlanRepository;
     private final BudgetDtoMapper mapper;
 

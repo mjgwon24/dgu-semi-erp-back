@@ -7,8 +7,8 @@ import lombok.Builder;
 
 import java.time.LocalDateTime;
 
-public final class BudgetCommandDto {
-    private BudgetCommandDto() {}
+public final class BudgetPlanCommandDto {
+    private BudgetPlanCommandDto() {}
 
     @Builder
     public record BudgetPlanCreateRequest(
