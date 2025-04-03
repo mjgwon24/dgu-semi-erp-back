@@ -1,9 +1,9 @@
 package com.example.dgu_semi_erp_back.api.budget;
 
-import com.example.dgu_semi_erp_back.dto.budget.BudgetCommandDto.BudgetPlanUpdateRequest;
-import com.example.dgu_semi_erp_back.dto.budget.BudgetCommandDto.BudgetPlanUpdateResponse;
-import com.example.dgu_semi_erp_back.dto.budget.BudgetCommandDto.BudgetPlanCreateRequest;
-import com.example.dgu_semi_erp_back.dto.budget.BudgetCommandDto.BudgetPlanCreateResponse;
+import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanCommandDto.BudgetPlanCreateRequest;
+import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanCommandDto.BudgetPlanCreateResponse;
+import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanCommandDto.BudgetPlanUpdateResponse;
+import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanCommandDto.BudgetPlanUpdateRequest;
 import com.example.dgu_semi_erp_back.usecase.budget.BudgetPlanCreateUseCase;
 import com.example.dgu_semi_erp_back.usecase.budget.BudgetPlanUpdateUseCase;
 import jakarta.validation.Valid;

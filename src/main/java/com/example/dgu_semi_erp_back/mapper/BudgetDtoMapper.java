@@ -1,6 +1,6 @@
 package com.example.dgu_semi_erp_back.mapper;
 
-import com.example.dgu_semi_erp_back.dto.budget.BudgetCommandDto.*;
+import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanCommandDto.BudgetPlanCreateRequest;
 import com.example.dgu_semi_erp_back.entity.budget.BudgetPlan;
 import com.example.dgu_semi_erp_back.entity.budget.types.BudgetStatus;
 import org.mapstruct.Mapper;

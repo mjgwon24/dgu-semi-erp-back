@@ -1,6 +1,6 @@
 package com.example.dgu_semi_erp_back.entity.budget;
 
-import com.example.dgu_semi_erp_back.dto.budget.BudgetCommandDto.BudgetPlanUpdateRequest;
+import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanCommandDto.BudgetPlanUpdateRequest;
 import com.example.dgu_semi_erp_back.entity.budget.types.BudgetStatus;
 import com.example.dgu_semi_erp_back.entity.budget.types.PaymentType;
 import jakarta.persistence.*;
