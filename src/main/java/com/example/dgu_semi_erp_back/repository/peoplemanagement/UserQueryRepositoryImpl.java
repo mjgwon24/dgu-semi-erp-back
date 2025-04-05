@@ -1,7 +1,7 @@
 package com.example.dgu_semi_erp_back.repository.peoplemanagement;
 
 import com.example.dgu_semi_erp_back.dto.peoplemanagement.UserClubMemberDto.ClubMemberDetail;
-import com.example.dgu_semi_erp_back.entity.club.MemberStatus;
+import com.example.dgu_semi_erp_back.entity.club.ClubStatus;
 import com.example.dgu_semi_erp_back.entity.club.QClub;
 import com.example.dgu_semi_erp_back.entity.club.QClubMember;
 import com.example.dgu_semi_erp_back.entity.auth.user.QUser;
@@ -22,14 +22,14 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
     private final UserClubMemberMapper mapper;
 
     @Override
-    public Page<ClubMemberDetail> findClubMembers(String clubName, MemberStatus status, Pageable pageable) {
+    public Page<ClubMemberDetail> findClubMembers(String clubName, ClubStatus status, Pageable pageable) {
         QClub club = QClub.club;
         QClubMember cm = QClubMember.clubMember;
         QUser user = QUser.user;
 
         BooleanBuilder builder = new BooleanBuilder();
         if (clubName != null) builder.and(club.name.eq(clubName));
-        if (status != null) builder.and(cm.status.eq(status));
+        if (status != null) builder.and(club.status.eq(status));
 
         List<ClubMemberDetail> content = queryFactory
                 .selectFrom(cm)

@@ -1,7 +1,7 @@
 package com.example.dgu_semi_erp_back.controller;
 
 import com.example.dgu_semi_erp_back.dto.peoplemanagement.UserClubMemberDto.ClubMemberDetail;
-import com.example.dgu_semi_erp_back.entity.club.MemberStatus;
+import com.example.dgu_semi_erp_back.entity.club.ClubStatus;
 import com.example.dgu_semi_erp_back.service.peoplemanagement.UserClubMemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,7 +18,7 @@ public class UserClubMemberController {
     @GetMapping("/club-members")
     public Page<ClubMemberDetail> getClubMembers(
             @RequestParam(required = false) String clubName,
-            @RequestParam(required = false) MemberStatus status,
+            @RequestParam(required = false) ClubStatus status,
             Pageable pageable
     ) {
         return service.getClubMembers(clubName, status, pageable);
