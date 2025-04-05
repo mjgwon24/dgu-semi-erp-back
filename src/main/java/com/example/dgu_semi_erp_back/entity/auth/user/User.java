@@ -36,9 +36,9 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private String nickname;
 
-    @Enumerated(EnumType.STRING) // Enum을 문자열로 저장
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role; // 역할 추가
+    private Role role;
 
     @ColumnDefault("false")
     @Column(columnDefinition = "TINYINT(1)")

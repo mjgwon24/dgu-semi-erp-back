@@ -26,6 +26,7 @@ public class Club {
     @Column(nullable = false)
     private String affiliation; // 소속
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MemberStatus status;
 
