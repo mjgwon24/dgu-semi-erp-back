@@ -21,7 +21,7 @@ public interface AccountDtoMapper {
             @Mapping(target = "club", source = "club"),
             @Mapping(target = "updatedAt", source = "updatedAt"),
     })
-    Account toEnity(
+    Account toEntity(
             AccountCreateRequest dto,
             User user,
             Club club,

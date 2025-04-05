@@ -36,7 +36,7 @@ public class AccountCommandService implements AccountCreateUseCase {
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() -> new UserNotFoundException("해당 사용자가 존재하지 않습니다."));
 
-        Account account = mapper.toEnity(request, user, club, now);
+        Account account = mapper.toEntity(request, user, club, now);
 
         return accountQueryRepository.save(account);
     }
