@@ -20,9 +20,11 @@ public class ClubMember {
     private Long id;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private MemberStatus status;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Role role;
 
     @Column(nullable = false)
