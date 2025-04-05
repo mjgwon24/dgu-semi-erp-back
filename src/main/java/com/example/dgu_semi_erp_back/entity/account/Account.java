@@ -29,7 +29,7 @@ public class Account {
     private String number; // 계좌번호
 
     @Column(nullable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @LastModifiedDate
     @Column(nullable = false)

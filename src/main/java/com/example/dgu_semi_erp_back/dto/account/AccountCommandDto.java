@@ -3,7 +3,7 @@ package com.example.dgu_semi_erp_back.dto.account;
 import com.example.dgu_semi_erp_back.entity.account.Account;
 import lombok.Builder;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public final class AccountCommandDto {
     private AccountCommandDto() {}
@@ -11,7 +11,7 @@ public final class AccountCommandDto {
     @Builder
     public record AccountCreateRequest(
             String number,
-            LocalDateTime createdAt,
+            Instant createdAt,
             Long userId,
             Long clubId
     ){}
@@ -24,7 +24,7 @@ public final class AccountCommandDto {
     @Builder
     public record AccountUpdateRequest(
             String number,
-            LocalDateTime updatedAt,
+            Instant updatedAt,
             long userId,
             long clubId
     ) {}
