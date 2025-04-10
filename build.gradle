@@ -58,6 +58,21 @@ dependencies {
 	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 }
 
+def querydslDir = "$buildDir/generated/querydsl"
+
+sourceSets {
+    main.java.srcDir querydslDir
+}
+
+tasks.register("compileQuerydsl", JavaCompile) {
+    group = "build"
+    description = "Compiles the Querydsl Q-types"
+    classpath = sourceSets.main.compileClasspath
+    destinationDirectory.set(file(querydslDir))
+    source = sourceSets.main.java
+    options.annotationProcessorPath = configurations.annotationProcessor
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
 }
