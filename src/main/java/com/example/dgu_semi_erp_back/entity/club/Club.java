@@ -28,7 +28,7 @@ public class Club {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MemberStatus status;
+    private ClubStatus status;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
