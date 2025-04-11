@@ -5,4 +5,5 @@ import com.example.dgu_semi_erp_back.entity.account.Account;
 
 public interface AccountCreateUseCase {
     Account create(AccountCreateRequest request);
+    Account getAccountByClubId(Long clubId);
 }

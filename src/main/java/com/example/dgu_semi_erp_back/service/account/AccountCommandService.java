@@ -4,9 +4,11 @@ import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreate
 import com.example.dgu_semi_erp_back.entity.account.Account;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
 import com.example.dgu_semi_erp_back.entity.club.Club;
+import com.example.dgu_semi_erp_back.exception.AccountNotFoundException;
 import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
 import com.example.dgu_semi_erp_back.mapper.AccountDtoMapper;
+import com.example.dgu_semi_erp_back.repository.account.AccountCommandRepository;
 import com.example.dgu_semi_erp_back.repository.account.AccountQueryRepository;
 import com.example.dgu_semi_erp_back.repository.auth.UserRepository;
 import com.example.dgu_semi_erp_back.repository.club.ClubRepository;
@@ -21,6 +23,7 @@ import java.time.Instant;
 @Service
 @RequiredArgsConstructor
 public class AccountCommandService implements AccountCreateUseCase {
+    private final AccountCommandRepository accountCommandRepository;
     private final AccountQueryRepository accountQueryRepository;
     private final UserRepository userRepository;
     private final ClubRepository clubRepository;
@@ -38,6 +41,12 @@ public class AccountCommandService implements AccountCreateUseCase {
 
         Account account = mapper.toEntity(request, user, club, now);
 
-        return accountQueryRepository.save(account);
+        return accountCommandRepository.save(account);
+    }
+
+    @Override
+    public Account getAccountByClubId(Long clubId) {
+        return accountQueryRepository.findAccountByClubId(clubId)
+                .orElseThrow(() -> new AccountNotFoundException("해당 통장이 존재하지 않습니다."));
     }
 }
