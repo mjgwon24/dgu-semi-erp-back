@@ -77,7 +77,8 @@ public class AccountApi {
                     .build();
         } catch (ClubNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
+        } catch (AccountNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
 }
