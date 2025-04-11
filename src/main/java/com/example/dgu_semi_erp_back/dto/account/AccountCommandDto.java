@@ -1,9 +1,11 @@
 package com.example.dgu_semi_erp_back.dto.account;
 
 import com.example.dgu_semi_erp_back.entity.account.Account;
+import com.example.dgu_semi_erp_back.dto.account.AccountHistoryCommandDto.AccountHistoryDetailResponse;
 import lombok.Builder;
 
 import java.time.Instant;
+import java.util.List;
 
 public final class AccountCommandDto {
     private AccountCommandDto() {}
@@ -32,5 +34,14 @@ public final class AccountCommandDto {
     @Builder
     public record AccountUpdateResponse(
             Account account
+    ) {}
+
+    @Builder
+    public record AccountInfoResponse(
+            String number,
+            Instant createdAt,
+            String ownerName,
+            String clubName,
+            List<AccountHistoryDetailResponse> accountHistories
     ) {}
 }

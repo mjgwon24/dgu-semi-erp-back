@@ -1,7 +1,9 @@
 package com.example.dgu_semi_erp_back.api.account;
 
+import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountInfoResponse;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateRequest;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateResponse;
+import com.example.dgu_semi_erp_back.dto.account.AccountHistoryCommandDto.AccountHistoryDetailResponse;
 import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
 import com.example.dgu_semi_erp_back.usecase.account.AccountCreateUseCase;
@@ -12,6 +14,12 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * 통장관리 API
+ * @author 권민지
+ * @since 2025.04.05
+ * @LastModified 2025.04.11
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/account")
@@ -19,6 +27,11 @@ import org.springframework.web.server.ResponseStatusException;
 public class AccountApi {
     private final AccountCreateUseCase accountCreateUseCase;
 
+    /**
+     * 통장 개설
+     * @param request 통장 번호, 개설일, 동아리 ID, 소유주 ID
+     * @return Account
+     */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public AccountCreateResponse create(
@@ -36,4 +49,35 @@ public class AccountApi {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }
+
+    /**
+     * 통장 정보 조회
+     * @param clubId 동아리 ID
+     * @return AccountInfoResponse 통장 번호, 개설일, 소유주 이름, 동아리 이름, (List)통장 거래 내역
+     */
+    @GetMapping("/{clubId}")
+    @ResponseStatus(HttpStatus.OK)
+    public AccountInfoResponse getAccountWithHistories(@PathVariable("clubId") Long clubId) {
+        try {
+            var account = accountCreateUseCase.getAccountByClubId(clubId);
+            return AccountInfoResponse.builder()
+                    .number(account.getNumber())
+                    .createdAt(account.getCreatedAt())
+                    .ownerName(account.getUser().getUsername())
+                    .clubName(account.getClub().getName())
+                    .accountHistories(account.getAccountHistories().stream()
+                            .map(history -> new AccountHistoryDetailResponse(
+                                    history.getPayType(),
+                                    history.getContent(),
+                                    history.getUsedAmount(),
+                                    history.getTotalAmount(),
+                                    history.getCreatedAt()
+                            ))
+                            .toList())
+                    .build();
+        } catch (ClubNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
+
 }
