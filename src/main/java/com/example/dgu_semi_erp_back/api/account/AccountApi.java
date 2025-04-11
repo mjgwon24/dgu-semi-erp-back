@@ -4,6 +4,7 @@ import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountInfoRe
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateRequest;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateResponse;
 import com.example.dgu_semi_erp_back.dto.account.AccountHistoryCommandDto.AccountHistoryDetailResponse;
+import com.example.dgu_semi_erp_back.exception.AccountNotFoundException;
 import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
 import com.example.dgu_semi_erp_back.usecase.account.AccountCreateUseCase;
@@ -75,10 +76,8 @@ public class AccountApi {
                             ))
                             .toList())
                     .build();
-        } catch (ClubNotFoundException e) {
+        } catch (ClubNotFoundException | AccountNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        } catch (AccountNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
     }
-
 }
