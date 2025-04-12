@@ -2,10 +2,7 @@ package com.example.dgu_semi_erp_back.entity.club;
 
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Setter
 public class ClubMember {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
