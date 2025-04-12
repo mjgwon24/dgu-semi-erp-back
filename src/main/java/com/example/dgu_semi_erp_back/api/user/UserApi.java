@@ -62,7 +62,7 @@ public class UserApi {
             ClubRegisterResponse response = clubMemberCreateUseCase.createClubMember(clubRegisterDto,accessToken,refreshToken);
             return ResponseEntity.ok(response);
         }
-        catch(UserNotFoundException e){
+        catch(UserNotFoundException | ClubNotFoundException e){
             return ResponseEntity.notFound().build();
         }
     }
