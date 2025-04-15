@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Builder
@@ -37,13 +38,13 @@ public class Schedule {
     private String title;
 
     @Column(name = "date", nullable = false)
-    private Instant date;
+    private LocalDateTime date;
 
     @Column(name = "place", nullable = false)
     private String place;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "repeat", nullable = true)
+    @Column(name = "schedule_repeat", nullable = true)
     private ScheduleRepeat repeat;
 
 

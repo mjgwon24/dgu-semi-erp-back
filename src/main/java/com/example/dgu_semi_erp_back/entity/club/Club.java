@@ -1,5 +1,6 @@
 package com.example.dgu_semi_erp_back.entity.club;
 import com.example.dgu_semi_erp_back.entity.account.Account;
+import com.example.dgu_semi_erp_back.entity.schedule.Schedule;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,4 +42,7 @@ public class Club {
 
     @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ClubMember> clubMembers;
+
+    @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Schedule> schedules;
 }
