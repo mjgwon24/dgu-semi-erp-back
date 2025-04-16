@@ -6,6 +6,7 @@ import com.example.dgu_semi_erp_back.entity.schedule.Schedule;
 import com.example.dgu_semi_erp_back.entity.schedule.type.ScheduleRepeat;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 import java.time.Instant;
 
@@ -20,6 +21,5 @@ public interface ScheduleDtoMapper {
             Club club,
             Instant createdAt
     );
-
 
 }

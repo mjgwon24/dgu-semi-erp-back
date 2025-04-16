@@ -4,5 +4,5 @@ import com.example.dgu_semi_erp_back.dto.schedule.ScheduleCommandDto.ScheduleUpd
 import com.example.dgu_semi_erp_back.entity.schedule.Schedule;
 
 public interface ScheduleUpdateUseCase {
-    Schedule update(ScheduleUpdateRequest request);
+    Schedule update(Long id, ScheduleUpdateRequest request);
 }

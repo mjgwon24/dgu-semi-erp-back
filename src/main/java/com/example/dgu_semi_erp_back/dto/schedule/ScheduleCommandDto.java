@@ -45,6 +45,12 @@ public class ScheduleCommandDto {
 
     @Builder
     public record ScheduleUpdateResponse(
-            Schedule schedule
+            @JsonProperty("club_id")
+            Long clubId,
+
+            String title,
+            LocalDateTime date,
+            String place,
+            ScheduleRepeat repeat
     ){}
 }
