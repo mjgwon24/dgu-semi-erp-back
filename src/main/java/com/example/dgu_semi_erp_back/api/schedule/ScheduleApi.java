@@ -1,9 +1,12 @@
 package com.example.dgu_semi_erp_back.api.schedule;
 
 import com.example.dgu_semi_erp_back.dto.schedule.ScheduleCommandDto.*;
+import com.example.dgu_semi_erp_back.dto.schedule.ScheduleQueryDto.*;
 import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.ScheduleNotFoundException;
 import com.example.dgu_semi_erp_back.usecase.schedule.ScheduleCreateUseCase;
+import com.example.dgu_semi_erp_back.usecase.schedule.ScheduleFindByClubIdUseCase;
+import com.example.dgu_semi_erp_back.usecase.schedule.ScheduleFindByMonthUseCase;
 import com.example.dgu_semi_erp_back.usecase.schedule.ScheduleUpdateUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +24,8 @@ import org.springframework.web.server.ResponseStatusException;
 public class ScheduleApi {
     private final ScheduleCreateUseCase scheduleCreateUseCase;
     private final ScheduleUpdateUseCase scheduleUpdateUseCase;
+    private final ScheduleFindByClubIdUseCase scheduleFindByClubIdUseCase;
+    private final ScheduleFindByMonthUseCase scheduleFindByMonthUseCase;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -62,6 +67,46 @@ public class ScheduleApi {
                     .repeat(updatedSchedule.getRepeat())
                     .build();
 
+
+        } catch (ScheduleNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (ClubNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
+
+    @GetMapping("/{club_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public ScheduleListResponse findByClubId(
+            @PathVariable("club_id") Long clubId
+    ) {
+        try {
+            var schedules = scheduleFindByClubIdUseCase.findByClubId(clubId);
+
+            return ScheduleListResponse.builder()
+                    .scheduleList(schedules)
+                    .build();
+
+        } catch (ScheduleNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (ClubNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
+
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public ScheduleListResponse findByMonth(
+            @RequestParam("club_id") Long clubId,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month
+    ) {
+        try {
+            var schedules = scheduleFindByMonthUseCase.findByMonth(clubId, year, month);
+
+            return ScheduleListResponse.builder()
+                    .scheduleList(schedules)
+                    .build();
 
         } catch (ScheduleNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
