@@ -3,11 +3,8 @@ package com.example.dgu_semi_erp_back.service.user;
 import com.example.dgu_semi_erp_back.common.exception.CustomException;
 import com.example.dgu_semi_erp_back.common.exception.ErrorCode;
 import com.example.dgu_semi_erp_back.common.jwt.JwtUtil;
-import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanCommandDto;
 import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.*;
 import com.example.dgu_semi_erp_back.dto.user.UserCommandDto.*;
-import com.example.dgu_semi_erp_back.entity.budget.BudgetPlan;
-import com.example.dgu_semi_erp_back.entity.budget.types.BudgetStatus;
 import com.example.dgu_semi_erp_back.entity.club.Club;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
 import com.example.dgu_semi_erp_back.entity.club.ClubMember;
@@ -16,6 +13,7 @@ import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
 import com.example.dgu_semi_erp_back.mapper.UserClubMemberMapper;
 import com.example.dgu_semi_erp_back.mapper.UserMapper;
+import com.example.dgu_semi_erp_back.projection.club.ClubProjection.ClubSummery;
 import com.example.dgu_semi_erp_back.repository.club.ClubMemberRepository;
 import com.example.dgu_semi_erp_back.repository.club.ClubRepository;
 import com.example.dgu_semi_erp_back.repository.auth.UserRepository;
@@ -26,7 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.NoSuchElementException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -47,15 +46,26 @@ public class UserService implements UserUpdateUseCase, ClubMemberCreateUseCase {
     public UserResponse getUserByToken(String accessToken) throws UserNotFoundException{
         String userName = jwtutil.getUsernameFromToken(accessToken);
         User user = userRepository.findByUsername(userName)
-                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
-        Club clubID = clubRepository.findClubIdById(user.getId()).orElseThrow(() -> new ClubNotFoundException("존재하지 않는 동아리입니다."));
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다.1"));
+        System.out.println(user.getId());
+        List<ClubMember> clubMember = clubMemberRepository.findClubIdsByUserId(user.getId());
+
+        List<ClubSummery> clubs = new ArrayList<>();
+        for(int i=0;i<clubMember.size();i++){
+            Long clubId = clubMember.get(i).getClub().getId();
+            ClubSummery club = clubRepository.findClubById(clubId).orElseThrow(() -> new UserNotFoundException("존재하지 않는 동아리입니다."));
+            clubs.add(club);
+        }
+
+
         return UserResponse.builder()
                 .id(user.getId())
                 .name(user.getUsername())
-                .email(user.getEmail())
                 .role(user.getRole())
-                .clubId(clubID.getId())
+                .email(user.getEmail())
+                .club(clubs)
                 .build();
+
     }
     @Transactional
     @Override
@@ -91,16 +101,15 @@ public class UserService implements UserUpdateUseCase, ClubMemberCreateUseCase {
     @Override
     public ClubRegisterResponse createClubMember(ClubRegisterRequest clubRegisterRequest,String accessToken,String refreshToken) throws ClubNotFoundException,UserNotFoundException {
         User user = findUserByAccessToken(accessToken);
-        Club club = clubRepository.findClubIdById(clubRegisterRequest.clubId()).orElseThrow(() -> new ClubNotFoundException("존재하지 않는 동아리입니다."));
-        if(clubMemberRepository.existsClubMemberByUserIdAndClubId(user.getId(), club.getId())){
+        ClubSummery club = clubRepository.findClubById(clubRegisterRequest.clubId()).orElseThrow(() -> new ClubNotFoundException("존재하지 않는 동아리입니다."));
+        if(clubMemberRepository.existsClubMemberByUserIdAndClubId(user.getId(), club.id())){
             throw new CustomException(ErrorCode.DUPLICATED_MEMBER);
         }
 
+
         LocalDateTime now = LocalDateTime.now();
-        System.out.println(club.getId());
-        System.out.println(user.getId());
-        ClubMember clubMember = userClubMemberMapper.toEntity(clubRegisterRequest,club.getId(),user.getId(),now);
+        ClubMember clubMember = userClubMemberMapper.toEntity(clubRegisterRequest,club.id(),user.getId(),now);
         clubMemberRepository.save(clubMember);
-        return ClubRegisterResponse.builder().message("가입 성공").build();
+        return ClubRegisterResponse.builder().message("가입 신청 성공").club(club).build();
     }
 }
