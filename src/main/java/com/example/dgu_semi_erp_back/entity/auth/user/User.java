@@ -55,19 +55,4 @@ public class User extends BaseEntity {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ClubMember> clubMembers;
-
-//    @Builder(
-//            builderClassName = "UpdateUserBuilder",
-//            builderMethodName = "prepareUpdate",
-//            buildMethodName = "update"
-//    )
-//    public void update(UserUpdateRequest request, LocalDateTime updatedAt) {
-//        this.username = request.username();
-//        this.password = request.password();
-//        this.email = request.email();
-//        this.nickname = request.nickname();
-//        this.major = request.major();
-//        this.studentNumber = request.studentNumber();
-//        this.role = request.role();
-//    }
 }
