@@ -1,6 +1,6 @@
 package com.example.dgu_semi_erp_back.service.peoplemanagement;
 
-import com.example.dgu_semi_erp_back.dto.peoplemanagement.UserClubMemberDto.ClubMemberDetail;
+import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.ClubMemberDetail;
 import com.example.dgu_semi_erp_back.entity.club.ClubStatus;
 import com.example.dgu_semi_erp_back.repository.peoplemanagement.UserQueryRepository;
 import lombok.RequiredArgsConstructor;
