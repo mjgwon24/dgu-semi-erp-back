@@ -53,6 +53,7 @@ public class UserApi {
             return ResponseEntity.ok(user);
         }
         catch (UserNotFoundException e){
+            System.out.println(e.getMessage());
             return ResponseEntity.notFound().build();
         }
     }
@@ -62,16 +63,19 @@ public class UserApi {
             ClubRegisterResponse response = clubMemberCreateUseCase.createClubMember(clubRegisterDto,accessToken,refreshToken);
             return ResponseEntity.ok(response);
         }
-        catch(UserNotFoundException | ClubNotFoundException e){
+        catch(UserNotFoundException e){
+            return ResponseEntity.notFound().build();
+        }
+        catch(ClubNotFoundException e){
             return ResponseEntity.notFound().build();
         }
     }
 
     @PatchMapping("/{id}/role")
-    public ResponseEntity<UserUpdateResponse> changeUserRole(@PathVariable Long id,@RequestBody UserRoleUpdateRequest request,@CookieValue(name = "accessToken", required = true) String accessToken, @CookieValue(name = "refreshToken", required = true) String refreshToken){
+    public ResponseEntity<UserRoleUpdateResponse> changeUserRole(@PathVariable Long id,@RequestBody UserRoleUpdateRequest request,@CookieValue(name = "accessToken", required = true) String accessToken, @CookieValue(name = "refreshToken", required = true) String refreshToken){
         try{
             User updatedUser = userUpdateUseCase.updateRole(id,request,accessToken,refreshToken);
-            return ResponseEntity.ok(UserUpdateResponse.builder().message("수정 완료").build());
+            return ResponseEntity.ok(UserRoleUpdateResponse.builder().message("수정 완료").role(request.role()).build());
         }
         catch(UserNotFoundException e){
             return ResponseEntity.notFound().build();
@@ -79,10 +83,10 @@ public class UserApi {
 
     }
     @PatchMapping("/{id}/email")
-    public ResponseEntity<UserUpdateResponse> changeUserEmail(@PathVariable Long id, @RequestBody UserEmailUpdateRequest request,@CookieValue(name = "accessToken", required = true) String accessToken, @CookieValue(name = "refreshToken", required = true) String refreshToken){
+    public ResponseEntity<UserEmailUpdateResponse> changeUserEmail(@PathVariable Long id, @RequestBody UserEmailUpdateRequest request,@CookieValue(name = "accessToken", required = true) String accessToken, @CookieValue(name = "refreshToken", required = true) String refreshToken){
         try{
             User updatedUser = userUpdateUseCase.updateEmail(id,request,accessToken,refreshToken);
-            return ResponseEntity.ok(UserUpdateResponse.builder().message("수정 완료").build());
+            return ResponseEntity.ok(UserEmailUpdateResponse.builder().message("수정 완료").email(request.email()).build());
         }
         catch (UserNotFoundException e){
             return ResponseEntity.notFound().build();
