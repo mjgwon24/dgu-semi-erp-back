@@ -1,7 +1,7 @@
 package com.example.dgu_semi_erp_back.dto.club;
 
-import com.example.dgu_semi_erp_back.entity.club.MemberStatus;
-import com.example.dgu_semi_erp_back.entity.club.Role;
+import com.example.dgu_semi_erp_back.entity.club.*;
+import com.example.dgu_semi_erp_back.projection.club.ClubProjection.ClubSummery;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -18,7 +18,7 @@ public final class UserClubMemberDto {
     @Builder
     public record ClubRegisterRequest(Long clubId,String role,String status) {}
     @Builder
-    public record ClubRegisterResponse (String message){}
+    public record ClubRegisterResponse (String message, ClubSummery club){}
     @Builder
     public record ClubMemberDetail(
             String name,
