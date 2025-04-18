@@ -1,20 +1,13 @@
 package com.example.dgu_semi_erp_back.dto.user;
-import com.example.dgu_semi_erp_back.entity.club.MemberStatus;
 import com.example.dgu_semi_erp_back.entity.club.Role;
+import com.example.dgu_semi_erp_back.projection.club.ClubProjection;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 
 public final class UserCommandDto{
-    @Builder
-    public record UserResponse(
-            Long id,
-            String name,
-            String email,
-            Role role,
-            Long clubId
-    ) {}
     @Builder
     public record UserUpdateRequest(
             String username,
@@ -25,17 +18,33 @@ public final class UserCommandDto{
             Integer studentNumber,
             Role role
     ){}
+
     @Builder
     public record UserRoleUpdateRequest(
-            Role role
+            @NotNull Role role
     ){}
     @Builder
     public record UserEmailUpdateRequest(
-            String email
+            @NotNull String email
+    ){}
+
+    @Builder
+    public record UserResponse(
+            Long id,
+            String name,
+            String email,
+            Role role,
+            List<ClubProjection.ClubSummery> club
+    ) {}
+    @Builder
+    public record UserRoleUpdateResponse(
+            String message,
+            Role role
     ){}
     @Builder
-    public record UserUpdateResponse(
-            String message
+    public record UserEmailUpdateResponse(
+            String message,
+            String email
     ){}
 }
 
