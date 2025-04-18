@@ -23,7 +23,7 @@ public interface UserClubMemberMapper {
     ClubMemberDetail toDto(ClubMember clubMember);
 
     @Mapping(target = "role", defaultValue = "MEMBER")
-    @Mapping(target = "status", defaultValue = "ACTIVE")
+    @Mapping(target = "status", defaultValue = "HOLD")
     @Mapping(target = "club", ignore = true)
     @Mapping(target = "user", ignore = true)
     ClubMember toEntity(ClubRegisterRequest ClubRegisterRequestDto,Long clubId,Long userId, LocalDateTime registeredAt);

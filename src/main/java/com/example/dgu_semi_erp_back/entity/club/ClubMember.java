@@ -3,6 +3,7 @@ package com.example.dgu_semi_erp_back.entity.club;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
 
@@ -19,11 +20,13 @@ public class ClubMember {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private MemberStatus status;
+    @ColumnDefault("'HOLD'")
+    private MemberStatus status = MemberStatus.ACTIVE;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private Role role;
+    @ColumnDefault("'MEMBER'")
+    private Role role = Role.MEMBER;
 
     @Column(nullable = false)
     private LocalDateTime registeredAt;
