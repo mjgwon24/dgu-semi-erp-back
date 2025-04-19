@@ -1,5 +1,6 @@
 package com.example.dgu_semi_erp_back.dto.account;
 
+import com.example.dgu_semi_erp_back.dto.common.PaginationInfo;
 import com.example.dgu_semi_erp_back.entity.account.Account;
 import com.example.dgu_semi_erp_back.dto.account.AccountHistoryCommandDto.AccountHistoryDetailResponse;
 import lombok.Builder;
@@ -42,6 +43,7 @@ public final class AccountCommandDto {
             Instant createdAt,
             String ownerName,
             String clubName,
-            List<AccountHistoryDetailResponse> accountHistories
+            List<AccountHistoryDetailResponse> accountHistories,
+            PaginationInfo paginationInfo
     ) {}
 }

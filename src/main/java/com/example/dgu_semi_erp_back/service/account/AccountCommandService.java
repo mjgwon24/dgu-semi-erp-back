@@ -2,6 +2,7 @@ package com.example.dgu_semi_erp_back.service.account;
 
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateRequest;
 import com.example.dgu_semi_erp_back.entity.account.Account;
+import com.example.dgu_semi_erp_back.entity.account.AccountHistory;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
 import com.example.dgu_semi_erp_back.entity.club.Club;
 import com.example.dgu_semi_erp_back.exception.AccountNotFoundException;
@@ -9,12 +10,16 @@ import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
 import com.example.dgu_semi_erp_back.mapper.AccountDtoMapper;
 import com.example.dgu_semi_erp_back.repository.account.AccountCommandRepository;
+import com.example.dgu_semi_erp_back.repository.account.AccountHistoryQueryRepository;
 import com.example.dgu_semi_erp_back.repository.account.AccountQueryRepository;
 import com.example.dgu_semi_erp_back.repository.auth.UserRepository;
 import com.example.dgu_semi_erp_back.repository.club.ClubRepository;
 import com.example.dgu_semi_erp_back.usecase.account.AccountCreateUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -25,6 +30,7 @@ import java.time.Instant;
 public class AccountCommandService implements AccountCreateUseCase {
     private final AccountCommandRepository accountCommandRepository;
     private final AccountQueryRepository accountQueryRepository;
+    private final AccountHistoryQueryRepository accountHistoryQueryRepository;
     private final UserRepository userRepository;
     private final ClubRepository clubRepository;
     private final AccountDtoMapper mapper;
@@ -48,5 +54,11 @@ public class AccountCommandService implements AccountCreateUseCase {
     public Account getAccountByClubId(Long clubId) {
         return accountQueryRepository.findAccountByClubId(clubId)
                 .orElseThrow(() -> new AccountNotFoundException("해당 통장이 존재하지 않습니다."));
+    }
+
+    @Override
+    public Page<AccountHistory> getPagedAccountHistories(Long accountId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return accountHistoryQueryRepository.findPagedHistoriesByAccountId(accountId, pageable);
     }
 }

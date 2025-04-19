@@ -4,12 +4,15 @@ import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountInfoRe
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateRequest;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateResponse;
 import com.example.dgu_semi_erp_back.dto.account.AccountHistoryCommandDto.AccountHistoryDetailResponse;
+import com.example.dgu_semi_erp_back.dto.common.PaginationInfo;
 import com.example.dgu_semi_erp_back.exception.AccountNotFoundException;
 import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
 import com.example.dgu_semi_erp_back.usecase.account.AccountCreateUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -58,9 +61,15 @@ public class AccountApi {
      */
     @GetMapping("/{clubId}")
     @ResponseStatus(HttpStatus.OK)
-    public AccountInfoResponse getAccountWithHistories(@PathVariable("clubId") Long clubId) {
+    public AccountInfoResponse getAccountWithHistories(
+            @PathVariable("clubId") Long clubId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "7") int size
+            ) {
         try {
             var account = accountCreateUseCase.getAccountByClubId(clubId);
+            var pagedHistories = accountCreateUseCase.getPagedAccountHistories(account.getId(), page, size);
+
             return AccountInfoResponse.builder()
                     .number(account.getNumber())
                     .createdAt(account.getCreatedAt())
@@ -75,6 +84,12 @@ public class AccountApi {
                                     history.getCreatedAt()
                             ))
                             .toList())
+                    .paginationInfo(new PaginationInfo(
+                            pagedHistories.getNumber(),
+                            pagedHistories.getSize(),
+                            pagedHistories.getTotalPages(),
+                            pagedHistories.getTotalElements()
+                    ))
                     .build();
         } catch (ClubNotFoundException | AccountNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
