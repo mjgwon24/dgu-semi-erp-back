@@ -6,8 +6,9 @@ import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.ScheduleNotFoundException;
 import com.example.dgu_semi_erp_back.mapper.ScheduleDtoMapper;
 import com.example.dgu_semi_erp_back.repository.club.ClubRepository;
-import com.example.dgu_semi_erp_back.repository.schedule.ScheduleQueryRepository;
+import com.example.dgu_semi_erp_back.repository.schedule.ScheduleCommandRepository;
 import com.example.dgu_semi_erp_back.usecase.schedule.ScheduleCreateUseCase;
+import com.example.dgu_semi_erp_back.usecase.schedule.ScheduleDeleteUseCase;
 import com.example.dgu_semi_erp_back.usecase.schedule.ScheduleUpdateUseCase;
 import com.example.dgu_semi_erp_back.dto.schedule.ScheduleCommandDto.*;
 import lombok.Locked;
@@ -20,8 +21,8 @@ import java.time.Instant;
 @Service
 @RequiredArgsConstructor
 
-public class ScheduleCommandService implements ScheduleCreateUseCase, ScheduleUpdateUseCase {
-    private final ScheduleQueryRepository scheduleQueryRepository;
+public class ScheduleCommandService implements ScheduleCreateUseCase, ScheduleUpdateUseCase, ScheduleDeleteUseCase {
+    private final ScheduleCommandRepository scheduleCommandRepository;
     private final ScheduleDtoMapper mapper;
     private final ClubRepository clubRepository;
 
@@ -33,13 +34,13 @@ public class ScheduleCommandService implements ScheduleCreateUseCase, ScheduleUp
                 .orElseThrow(() -> new ClubNotFoundException("해당 동아리가 존재하지 않습니다."));
 
         Schedule schedule = mapper.toEntity(request, club, now);
-        return scheduleQueryRepository.save(schedule);
+        return scheduleCommandRepository.save(schedule);
     }
 
     @Transactional
     @Override
     public Schedule update(Long id, ScheduleUpdateRequest request) {
-        Schedule schedule = scheduleQueryRepository.findById(id)
+        Schedule schedule = scheduleCommandRepository.findById(id)
                 .orElseThrow(() -> new ScheduleNotFoundException("해당 일정이 존재하지 않습니다."));
 
         Schedule updatedSchedule = Schedule.builder()
@@ -52,6 +53,17 @@ public class ScheduleCommandService implements ScheduleCreateUseCase, ScheduleUp
                 .repeat(request.repeat())
                 .build();
 
-        return scheduleQueryRepository.save(updatedSchedule);
+        return scheduleCommandRepository.save(updatedSchedule);
     }
+
+    @Transactional
+    @Override
+    public void delete(Long id) {
+        Schedule schedule = scheduleCommandRepository.findById(id)
+                .orElseThrow(() -> new ScheduleNotFoundException("해당 일정이 존재하지 않습니다."));
+
+        scheduleCommandRepository.delete(schedule);
+    }
+
+
 }

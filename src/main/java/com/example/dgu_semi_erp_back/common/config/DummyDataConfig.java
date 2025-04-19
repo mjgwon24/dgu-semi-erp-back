@@ -5,7 +5,7 @@ import com.example.dgu_semi_erp_back.entity.club.MemberStatus;
 import com.example.dgu_semi_erp_back.entity.schedule.Schedule;
 import com.example.dgu_semi_erp_back.entity.schedule.type.ScheduleRepeat;
 import com.example.dgu_semi_erp_back.repository.club.ClubRepository;
-import com.example.dgu_semi_erp_back.repository.schedule.ScheduleQueryRepository;
+import com.example.dgu_semi_erp_back.repository.schedule.ScheduleCommandRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,11 +17,11 @@ import java.time.LocalDateTime;
 public class DummyDataConfig {
 
     private final ClubRepository clubRepository;
-    private final ScheduleQueryRepository scheduleQueryRepository;
+    private final ScheduleCommandRepository scheduleCommandRepository;
 
-    public DummyDataConfig(ClubRepository clubRepository, ScheduleQueryRepository scheduleQueryRepository) {
+    public DummyDataConfig(ClubRepository clubRepository, ScheduleCommandRepository scheduleCommandRepository) {
         this.clubRepository = clubRepository;
-        this.scheduleQueryRepository = scheduleQueryRepository;
+        this.scheduleCommandRepository = scheduleCommandRepository;
     }
 
     @Bean
@@ -40,7 +40,7 @@ public class DummyDataConfig {
     }
 
     @Bean
-    CommandLineRunner initScheduleData(ScheduleQueryRepository scheduleQueryRepository) {
+    CommandLineRunner initScheduleData(ScheduleCommandRepository scheduleCommandRepository) {
         return args -> {
             Schedule schedule = Schedule.builder()
                     .club(clubRepository.findById(1L).orElseThrow(() -> new RuntimeException("Club not found")))
@@ -51,12 +51,12 @@ public class DummyDataConfig {
                     .createdAt(Instant.now())
                     .build();
 
-            scheduleQueryRepository.save(schedule);
+            scheduleCommandRepository.save(schedule);
         };
     }
 
     @Bean
-    CommandLineRunner initScheduleData2(ScheduleQueryRepository scheduleQueryRepository) {
+    CommandLineRunner initScheduleData2(ScheduleCommandRepository scheduleCommandRepository) {
         return args -> {
             Schedule schedule = Schedule.builder()
                     .club(clubRepository.findById(1L).orElseThrow(() -> new RuntimeException("Club not found")))
@@ -67,12 +67,12 @@ public class DummyDataConfig {
                     .createdAt(Instant.now())
                     .build();
 
-            scheduleQueryRepository.save(schedule);
+            scheduleCommandRepository.save(schedule);
         };
     }
 
     @Bean
-    CommandLineRunner initScheduleData3(ScheduleQueryRepository scheduleQueryRepository) {
+    CommandLineRunner initScheduleData3(ScheduleCommandRepository scheduleCommandRepository) {
         return args -> {
             Schedule schedule = Schedule.builder()
                     .club(clubRepository.findById(1L).orElseThrow(() -> new RuntimeException("Club not found")))
@@ -83,7 +83,7 @@ public class DummyDataConfig {
                     .createdAt(Instant.now())
                     .build();
 
-            scheduleQueryRepository.save(schedule);
+            scheduleCommandRepository.save(schedule);
         };
     }
 

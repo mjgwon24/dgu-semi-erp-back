@@ -20,8 +20,6 @@ public class ScheduleQueryDto {
 
     @Builder
     public record ScheduleListResponse(
-            @JsonProperty("club_id")
-            Long clubId,
             List<ScheduleDetail> scheduleList
     ) {}
 }

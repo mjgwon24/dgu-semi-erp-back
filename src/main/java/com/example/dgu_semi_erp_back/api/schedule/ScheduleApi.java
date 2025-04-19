@@ -8,6 +8,7 @@ import com.example.dgu_semi_erp_back.usecase.schedule.ScheduleCreateUseCase;
 import com.example.dgu_semi_erp_back.usecase.schedule.ScheduleFindByClubIdUseCase;
 import com.example.dgu_semi_erp_back.usecase.schedule.ScheduleFindByMonthUseCase;
 import com.example.dgu_semi_erp_back.usecase.schedule.ScheduleUpdateUseCase;
+import com.example.dgu_semi_erp_back.usecase.schedule.ScheduleDeleteUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class ScheduleApi {
     private final ScheduleCreateUseCase scheduleCreateUseCase;
     private final ScheduleUpdateUseCase scheduleUpdateUseCase;
+    private final ScheduleDeleteUseCase scheduleDeleteUseCase;
     private final ScheduleFindByClubIdUseCase scheduleFindByClubIdUseCase;
     private final ScheduleFindByMonthUseCase scheduleFindByMonthUseCase;
 
@@ -111,6 +113,18 @@ public class ScheduleApi {
         } catch (ScheduleNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (ClubNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void ScheduleDeleteResponse(
+            @PathVariable Long id
+    ) {
+        try {
+            scheduleDeleteUseCase.delete(id);
+        } catch (ScheduleNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }
