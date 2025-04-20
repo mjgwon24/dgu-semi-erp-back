@@ -36,7 +36,6 @@ public class ScheduleCommandDto {
 
     @Builder
     public record ScheduleUpdateRequest(
-            Long id,
             String title,
             LocalDateTime date,
             String place,
@@ -53,4 +52,6 @@ public class ScheduleCommandDto {
             String place,
             ScheduleRepeat repeat
     ){}
+
+    public record MessageResponse(String message) {}
 }

@@ -12,6 +12,7 @@ import com.example.dgu_semi_erp_back.usecase.schedule.ScheduleDeleteUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -31,19 +32,14 @@ public class ScheduleApi {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ScheduleCreateResponse create(
+    public ResponseEntity<MessageResponse> create(
             @RequestBody @Valid ScheduleCreateRequest request
     ) {
         try {
             var schedule = scheduleCreateUseCase.create(request);
 
-            return ScheduleCreateResponse.builder()
-                    .clubId(schedule.getClub().getId())
-                    .title(schedule.getTitle())
-                    .date(schedule.getDate())
-                    .place(schedule.getPlace())
-                    .repeat(schedule.getRepeat())
-                    .build();
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new MessageResponse("일정이 추가되었습니다."));
 
         } catch (ClubNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
@@ -53,7 +49,7 @@ public class ScheduleApi {
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public ScheduleUpdateResponse update(
+    public ResponseEntity<MessageResponse> update(
             @PathVariable Long id,
             @RequestBody @Valid ScheduleUpdateRequest request
     ) {
@@ -61,13 +57,7 @@ public class ScheduleApi {
         try{
             var updatedSchedule = scheduleUpdateUseCase.update(id, request);
 
-            return ScheduleUpdateResponse.builder()
-                    .clubId(updatedSchedule.getClub().getId())
-                    .title(updatedSchedule.getTitle())
-                    .date(updatedSchedule.getDate())
-                    .place(updatedSchedule.getPlace())
-                    .repeat(updatedSchedule.getRepeat())
-                    .build();
+            return ResponseEntity.ok(new MessageResponse("일정이 수정되었습니다."));
 
 
         } catch (ScheduleNotFoundException e) {

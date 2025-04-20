@@ -47,5 +47,12 @@ public class Schedule {
     @Column(name = "schedule_repeat", nullable = true)
     private ScheduleRepeat repeat;
 
+    public void update(String title, LocalDateTime date, String place, ScheduleRepeat repeat) {
+        this.title = title;
+        this.date = date;
+        this.place = place;
+        this.repeat = repeat;
+    }
+
 
 }

@@ -25,7 +25,7 @@ public class DummyDataConfig {
     }
 
     @Bean
-    CommandLineRunner initClubData(ClubRepository clubRepository) {
+    CommandLineRunner initData() {
         return args -> {
             Club club = Club.builder()
                     .name("디벨로퍼")
@@ -35,55 +35,40 @@ public class DummyDataConfig {
                     .updatedAt(LocalDateTime.now())
                     .build();
 
-            clubRepository.save(club);
-        };
-    }
+            Club savedClub = clubRepository.save(club);
 
-    @Bean
-    CommandLineRunner initScheduleData(ScheduleCommandRepository scheduleCommandRepository) {
-        return args -> {
-            Schedule schedule = Schedule.builder()
-                    .club(clubRepository.findById(1L).orElseThrow(() -> new RuntimeException("Club not found")))
-                    .title("정기모임")
-                    .date(LocalDateTime.of(2025, 2, 17, 10, 30))
-                    .place("공대 101호")
-                    .repeat(ScheduleRepeat.WEEKLY)
-                    .createdAt(Instant.now())
-                    .build();
+            scheduleCommandRepository.save(
+                    Schedule.builder()
+                            .club(savedClub)
+                            .title("정기모임")
+                            .date(LocalDateTime.of(2025, 2, 17, 10, 30))
+                            .place("공대 101호")
+                            .repeat(ScheduleRepeat.WEEKLY)
+                            .createdAt(Instant.now())
+                            .build()
+            );
 
-            scheduleCommandRepository.save(schedule);
-        };
-    }
+            scheduleCommandRepository.save(
+                    Schedule.builder()
+                            .club(savedClub)
+                            .title("정기모임2")
+                            .date(LocalDateTime.of(2025, 3, 17, 10, 30))
+                            .place("공대 101호")
+                            .repeat(ScheduleRepeat.WEEKLY)
+                            .createdAt(Instant.now())
+                            .build()
+            );
 
-    @Bean
-    CommandLineRunner initScheduleData2(ScheduleCommandRepository scheduleCommandRepository) {
-        return args -> {
-            Schedule schedule = Schedule.builder()
-                    .club(clubRepository.findById(1L).orElseThrow(() -> new RuntimeException("Club not found")))
-                    .title("정기모임2")
-                    .date(LocalDateTime.of(2025, 3, 17, 10, 30))
-                    .place("공대 101호")
-                    .repeat(ScheduleRepeat.WEEKLY)
-                    .createdAt(Instant.now())
-                    .build();
-
-            scheduleCommandRepository.save(schedule);
-        };
-    }
-
-    @Bean
-    CommandLineRunner initScheduleData3(ScheduleCommandRepository scheduleCommandRepository) {
-        return args -> {
-            Schedule schedule = Schedule.builder()
-                    .club(clubRepository.findById(1L).orElseThrow(() -> new RuntimeException("Club not found")))
-                    .title("정기모임3")
-                    .date(LocalDateTime.of(2025, 4, 17, 10, 30))
-                    .place("공대 101호")
-                    .repeat(ScheduleRepeat.WEEKLY)
-                    .createdAt(Instant.now())
-                    .build();
-
-            scheduleCommandRepository.save(schedule);
+            scheduleCommandRepository.save(
+                    Schedule.builder()
+                            .club(savedClub)
+                            .title("정기모임3")
+                            .date(LocalDateTime.of(2025, 4, 17, 10, 30))
+                            .place("공대 101호")
+                            .repeat(ScheduleRepeat.WEEKLY)
+                            .createdAt(Instant.now())
+                            .build()
+            );
         };
     }
 

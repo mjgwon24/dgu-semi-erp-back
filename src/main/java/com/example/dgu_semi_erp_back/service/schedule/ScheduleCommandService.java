@@ -13,10 +13,12 @@ import com.example.dgu_semi_erp_back.usecase.schedule.ScheduleUpdateUseCase;
 import com.example.dgu_semi_erp_back.dto.schedule.ScheduleCommandDto.*;
 import lombok.Locked;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -43,17 +45,9 @@ public class ScheduleCommandService implements ScheduleCreateUseCase, ScheduleUp
         Schedule schedule = scheduleCommandRepository.findById(id)
                 .orElseThrow(() -> new ScheduleNotFoundException("해당 일정이 존재하지 않습니다."));
 
-        Schedule updatedSchedule = Schedule.builder()
-                .id(schedule.getId())
-                .club(schedule.getClub())
-                .createdAt(schedule.getCreatedAt())
-                .title(request.title())
-                .date(request.date())
-                .place(request.place())
-                .repeat(request.repeat())
-                .build();
+        schedule.update(request.title(), request.date(), request.place(), request.repeat());
 
-        return scheduleCommandRepository.save(updatedSchedule);
+        return schedule;
     }
 
     @Transactional
