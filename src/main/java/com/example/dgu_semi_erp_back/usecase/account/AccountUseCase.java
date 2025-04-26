@@ -18,4 +18,5 @@ public interface AccountUseCase {
             Long accountId,
             AccountUpdateRequest request
     );
+    void deleteAccount(Long accountId);
 }

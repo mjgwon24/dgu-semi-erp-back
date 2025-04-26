@@ -14,6 +14,7 @@ import com.example.dgu_semi_erp_back.usecase.account.AccountUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -122,4 +123,23 @@ public class AccountApi {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }
+
+    /**
+     * 동아리 별 통장 소프트 삭제
+     * @param accountId 통장 ID
+     * @return ResponseStatus, message
+     */
+    @DeleteMapping("/{accountId}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<String> deleteAccount(
+            @PathVariable("accountId") Long accountId
+    ) {
+        try {
+            accountUseCase.deleteAccount(accountId);
+            return ResponseEntity.ok("통장이 정상적으로 삭제되었습니다.");
+        } catch (AccountNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
+
 }
