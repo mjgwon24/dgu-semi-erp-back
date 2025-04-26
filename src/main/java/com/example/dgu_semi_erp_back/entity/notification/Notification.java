@@ -26,6 +26,7 @@ public class Notification {
 
     private String content;
 
+    @Enumerated(EnumType.STRING)
     private Category category;
 
     private LocalDateTime createdAt;
