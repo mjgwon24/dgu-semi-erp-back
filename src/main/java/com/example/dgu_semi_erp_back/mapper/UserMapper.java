@@ -13,11 +13,8 @@ import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
 public interface UserMapper {
-    @Mapping(target = "id", ignore = true)
-    @Mapping(source = "role", target = "role")
-    void updateUserRole(@MappingTarget User user, UserRoleUpdateRequest request);
-
-    @Mapping(target = "id", ignore = true)
-    @Mapping(source = "email", target = "email")
-    void updateUserEmail(@MappingTarget User user, UserEmailUpdateRequest request);
+    default User toEntity(@MappingTarget User user, UserEmailUpdateRequest request) {
+        user.changeEmail(request.email());
+        return user;
+    }
 }
