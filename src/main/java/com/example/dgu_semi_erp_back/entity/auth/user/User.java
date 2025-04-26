@@ -17,7 +17,6 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Setter
 public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,10 +41,6 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private Integer studentNumber;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
-
     @ColumnDefault("false")
     @Column(columnDefinition = "TINYINT(1)")
     private boolean isVerified; // 이메일 인증 여부
@@ -55,4 +50,8 @@ public class User extends BaseEntity {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ClubMember> clubMembers;
+
+    public void changeEmail(String newEmail) {
+        this.email = newEmail;
+    }
 }
