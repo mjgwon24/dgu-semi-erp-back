@@ -1,13 +1,16 @@
 package com.example.dgu_semi_erp_back.api.account;
 
+import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountUpdateRequest;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountInfoResponse;
+import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountInfoDetailResponse;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateRequest;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateResponse;
 import com.example.dgu_semi_erp_back.dto.account.AccountHistoryCommandDto.AccountHistoryDetailResponse;
+import com.example.dgu_semi_erp_back.dto.common.PaginationInfo;
 import com.example.dgu_semi_erp_back.exception.AccountNotFoundException;
 import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
-import com.example.dgu_semi_erp_back.usecase.account.AccountCreateUseCase;
+import com.example.dgu_semi_erp_back.usecase.account.AccountUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,14 +22,14 @@ import org.springframework.web.server.ResponseStatusException;
  * 통장관리 API
  * @author 권민지
  * @since 2025.04.05
- * @LastModified 2025.04.11
+ * @LastModified 2025.04.19
  */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/account")
 @Validated
 public class AccountApi {
-    private final AccountCreateUseCase accountCreateUseCase;
+    private final AccountUseCase accountUseCase;
 
     /**
      * 통장 개설
@@ -39,7 +42,7 @@ public class AccountApi {
             @RequestBody @Valid AccountCreateRequest request
     ){
         try {
-            var account = accountCreateUseCase.create(request);
+            var account = accountUseCase.create(request);
 
             return AccountCreateResponse.builder()
                     .account(account)
@@ -54,14 +57,20 @@ public class AccountApi {
     /**
      * 통장 정보 조회
      * @param clubId 동아리 ID
-     * @return AccountInfoResponse 통장 번호, 개설일, 소유주 이름, 동아리 이름, (List)통장 거래 내역
+     * @return AccountInfoResponse 통장 번호, 개설일, 소유주 이름, 동아리 이름, (List)통장 거래 내역, PaginationInfo
      */
     @GetMapping("/{clubId}")
     @ResponseStatus(HttpStatus.OK)
-    public AccountInfoResponse getAccountWithHistories(@PathVariable("clubId") Long clubId) {
+    public AccountInfoDetailResponse getAccountWithHistories(
+            @PathVariable("clubId") Long clubId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "7") int size
+            ) {
         try {
-            var account = accountCreateUseCase.getAccountByClubId(clubId);
-            return AccountInfoResponse.builder()
+            var account = accountUseCase.getAccountByClubId(clubId);
+            var pagedHistories = accountUseCase.getPagedAccountHistories(account.getId(), page, size);
+
+            return AccountInfoDetailResponse.builder()
                     .number(account.getNumber())
                     .createdAt(account.getCreatedAt())
                     .ownerName(account.getUser().getUsername())
@@ -75,8 +84,41 @@ public class AccountApi {
                                     history.getCreatedAt()
                             ))
                             .toList())
+                    .paginationInfo(new PaginationInfo(
+                            pagedHistories.getNumber(),
+                            pagedHistories.getSize(),
+                            pagedHistories.getTotalPages(),
+                            pagedHistories.getTotalElements()
+                    ))
                     .build();
         } catch (ClubNotFoundException | AccountNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
+
+    /**
+     * 통장 정보 변경
+     * @param accountId 통장 ID
+     * @param request 통장 번호, 개설일, 동아리 이름, 소유주 이름
+     * @return Account
+     */
+    @PutMapping("/{accountId}")
+    @ResponseStatus(HttpStatus.OK)
+    public AccountInfoResponse updateAccount(
+            @PathVariable("accountId") Long accountId,
+            @RequestBody @Valid AccountUpdateRequest request
+    ) {
+        try {
+            var account = accountUseCase.updateAccount(accountId, request);
+
+            return AccountInfoResponse.builder()
+                    .number(account.getNumber())
+                    .createdAt(account.getCreatedAt())
+                    .updatedAt(account.getUpdatedAt())
+                    .ownerName(account.getUser().getUsername())
+                    .clubName(account.getClub().getName())
+                    .build();
+        } catch (AccountNotFoundException | UserNotFoundException | ClubNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }
