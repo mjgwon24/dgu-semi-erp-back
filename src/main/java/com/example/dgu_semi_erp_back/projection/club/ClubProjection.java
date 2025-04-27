@@ -1,5 +1,6 @@
 package com.example.dgu_semi_erp_back.projection.club;
 
+import com.example.dgu_semi_erp_back.entity.club.ClubMember;
 import com.example.dgu_semi_erp_back.entity.club.ClubStatus;
 import com.example.dgu_semi_erp_back.entity.club.MemberStatus;
 import com.example.dgu_semi_erp_back.entity.club.Role;
@@ -13,6 +14,7 @@ public class ClubProjection {
             Long id,
             String name,
             String affiliation,
-            ClubStatus status
+            ClubStatus status,
+            ClubMemberProjection.ClubMemberSummery clubMembers
     ) {}
 }

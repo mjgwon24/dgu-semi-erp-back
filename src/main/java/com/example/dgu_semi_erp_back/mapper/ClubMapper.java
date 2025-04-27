@@ -2,6 +2,7 @@ package com.example.dgu_semi_erp_back.mapper;
 import com.example.dgu_semi_erp_back.dto.user.UserCommandDto;
 import com.example.dgu_semi_erp_back.dto.user.UserCommandDto.*;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
+import com.example.dgu_semi_erp_back.entity.club.ClubMember;
 import org.mapstruct.*;
 
 import java.time.Instant;
@@ -13,11 +14,5 @@ import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
 public interface ClubMapper {
-    @Mapping(target = "id", ignore = true)
-    @Mapping(source = "role", target = "role")
-    void updateUserRole(@MappingTarget User user, UserRoleUpdateRequest request);
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(source = "email", target = "email")
-    void updateUserEmail(@MappingTarget User user, UserEmailUpdateRequest request);
 }

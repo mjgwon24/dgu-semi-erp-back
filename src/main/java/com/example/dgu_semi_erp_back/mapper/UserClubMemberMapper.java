@@ -2,6 +2,7 @@ package com.example.dgu_semi_erp_back.mapper;
 
 import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.ClubRegisterRequest;
 import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.ClubMemberDetail;
+import com.example.dgu_semi_erp_back.dto.user.UserCommandDto.*;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
 import com.example.dgu_semi_erp_back.entity.club.Club;
 import com.example.dgu_semi_erp_back.entity.club.ClubMember;
@@ -22,14 +23,14 @@ public interface UserClubMemberMapper {
     @Mapping(source = "registeredAt", target = "joinedAt")
     ClubMemberDetail toDto(ClubMember clubMember);
 
-    @Mapping(target = "role", defaultValue = "MEMBER")
-    @Mapping(target = "status", defaultValue = "HOLD")
-    @Mapping(target = "club", ignore = true)
-    @Mapping(target = "user", ignore = true)
-    ClubMember toEntity(ClubRegisterRequest ClubRegisterRequestDto,Long clubId,Long userId, LocalDateTime registeredAt);
-    @AfterMapping
-    default void assignEntities(@MappingTarget ClubMember member, Long clubId, Long userId) {
-        member.setClub(Club.builder().id(clubId).build());
-        member.setUser(User.builder().id(userId).build());
-    }
+    @Mapping(source = "ClubRegisterRequestDto.status", target = "status", defaultValue = "HOLD")
+    @Mapping(target = "id",ignore = true)
+    ClubMember toEntity(ClubRegisterRequest ClubRegisterRequestDto,Club club,User user, LocalDateTime registeredAt);
+
+    ClubMember toEntity(@MappingTarget ClubMember clubMember,UserRoleUpdateRequest request);
+
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(source = "role", target = "role")
+    void updateUserRole(@MappingTarget ClubMember clubMember, UserRoleUpdateRequest request);
 }

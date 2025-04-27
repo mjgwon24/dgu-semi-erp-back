@@ -21,6 +21,7 @@ public final class UserCommandDto{
 
     @Builder
     public record UserRoleUpdateRequest(
+            @NotNull Long clubId,
             @NotNull Role role
     ){}
     @Builder
@@ -33,7 +34,6 @@ public final class UserCommandDto{
             Long id,
             String name,
             String email,
-            Role role,
             List<ClubProjection.ClubSummery> club
     ) {}
     @Builder

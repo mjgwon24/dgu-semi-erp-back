@@ -18,7 +18,7 @@ public final class UserClubMemberDto {
     @Builder
     public record ClubRegisterRequest(Long clubId,String role,String status) {}
     @Builder
-    public record ClubRegisterResponse (String message, ClubSummery club){}
+    public record ClubRegisterResponse (String message, Club club){}
     @Builder
     public record ClubMemberDetail(
             String name,
