@@ -1,6 +1,7 @@
 package com.example.dgu_semi_erp_back.common.config;
 
 import com.example.dgu_semi_erp_back.entity.club.Club;
+import com.example.dgu_semi_erp_back.entity.club.ClubStatus;
 import com.example.dgu_semi_erp_back.entity.club.MemberStatus;
 import com.example.dgu_semi_erp_back.entity.schedule.Schedule;
 import com.example.dgu_semi_erp_back.entity.schedule.type.ScheduleRepeat;
@@ -30,7 +31,7 @@ public class DummyDataConfig {
             Club club = Club.builder()
                     .name("디벨로퍼")
                     .affiliation("공대")
-                    .status(MemberStatus.ACTIVE)
+                    .status(ClubStatus.ACTIVE)
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build();
