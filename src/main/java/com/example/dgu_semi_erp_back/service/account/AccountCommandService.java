@@ -125,8 +125,7 @@ public class AccountCommandService implements AccountUseCase {
                 .orElseThrow(() -> new UserNotFoundException("해당 사용자가 존재하지 않습니다."));
 
         // 비회원(동아리 미가입자) 확인
-        if (currentUser == null || currentUser.getClubMembers() == null) {
-            throw new UserNotFoundException("비회원은 통장을 삭제할 수 없습니다.");
+        if (currentUser.getClubMembers() == null || currentUser.getClubMembers().isEmpty()) {
         }
 
         // 요청자의 소속 동아리에 속한 통장인지 확인
