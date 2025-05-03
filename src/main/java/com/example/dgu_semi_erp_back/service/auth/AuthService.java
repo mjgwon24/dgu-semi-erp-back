@@ -113,7 +113,7 @@ public class AuthService {
                 .password(BCrypt.hashpw(signUpRequest.password(), BCrypt.gensalt()))
                 .email(signUpRequest.email())
                 .nickname(signUpRequest.nickname())
-                .role(Role.MEMBER)
+//                .role(Role.MEMBER)
                 .isVerified(true)
                 .build();
 

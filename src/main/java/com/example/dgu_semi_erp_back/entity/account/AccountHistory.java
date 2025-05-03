@@ -1,12 +1,12 @@
 package com.example.dgu_semi_erp_back.entity.account;
-import com.example.dgu_semi_erp_back.entity.club.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @Builder
@@ -21,7 +21,7 @@ public class AccountHistory {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role; // 역할 추가
+    private PayType payType;
 
     @Column(nullable = false)
     private String content;
@@ -32,8 +32,9 @@ public class AccountHistory {
     @Column(nullable = false)
     private int usedAmount; // 사용 금액
 
+    @CreatedDate
     @Column(nullable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false)
