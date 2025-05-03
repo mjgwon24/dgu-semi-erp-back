@@ -3,14 +3,14 @@ package com.example.dgu_semi_erp_back.api.user;
 import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.*;
 import com.example.dgu_semi_erp_back.dto.user.UserCommandDto.*;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
-import com.example.dgu_semi_erp_back.entity.club.ClubMember;
 import com.example.dgu_semi_erp_back.entity.club.ClubStatus;
 import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
+import com.example.dgu_semi_erp_back.projection.club.ClubProjection.ClubSummery;
 import com.example.dgu_semi_erp_back.service.peoplemanagement.UserClubMemberService;
 import com.example.dgu_semi_erp_back.service.user.UserService;
 import com.example.dgu_semi_erp_back.usecase.club.ClubMemberCreateUseCase;
-import com.example.dgu_semi_erp_back.usecase.user.UserUpdateUseCase;
+import com.example.dgu_semi_erp_back.usecase.user.UserUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +26,7 @@ public class UserApi {
 
     private final UserService userService;
     private final UserClubMemberService service;
-    private final UserUpdateUseCase userUpdateUseCase;
+    private final UserUseCase userUseCase;
     private final ClubMemberCreateUseCase clubMemberCreateUseCase;
 
     @GetMapping
@@ -57,6 +57,19 @@ public class UserApi {
             return ResponseEntity.notFound().build();
         }
     }
+    @GetMapping("/me/club")
+    public ResponseEntity<Page<ClubSummery>> getClubs(@CookieValue(name = "accessToken", required = true) String accessToken, @CookieValue(name = "refreshToken", required = true) String refreshToken,Pageable pageable){
+        try{
+            Page<ClubSummery> response = userService.getUserClubs(accessToken,pageable);
+            return ResponseEntity.ok(response);
+        }
+        catch(UserNotFoundException e){
+            return ResponseEntity.notFound().build();
+        }
+        catch(ClubNotFoundException e){
+            return ResponseEntity.notFound().build();
+        }
+    }
     @PostMapping("/me/club")
     public  ResponseEntity<ClubRegisterResponse> registerClub(@RequestBody ClubRegisterRequest clubRegisterDto,@CookieValue(name = "accessToken", required = true) String accessToken, @CookieValue(name = "refreshToken", required = true) String refreshToken){
         try{
@@ -74,7 +87,7 @@ public class UserApi {
     @PatchMapping("/{id}/role")
     public ResponseEntity<UserRoleUpdateResponse> changeUserRole(@PathVariable Long id,@RequestBody UserRoleUpdateRequest request,@CookieValue(name = "accessToken", required = true) String accessToken, @CookieValue(name = "refreshToken", required = true) String refreshToken){
         try{
-            User updatedUser = userUpdateUseCase.updateRole(id,request,accessToken,refreshToken);
+            User updatedUser = userUseCase.updateRole(id,request,accessToken,refreshToken);
             return ResponseEntity.ok(UserRoleUpdateResponse.builder().message("수정 완료").role(request.role()).build());
         }
         catch(UserNotFoundException e){
@@ -85,7 +98,7 @@ public class UserApi {
     @PatchMapping("/{id}/email")
     public ResponseEntity<UserEmailUpdateResponse> changeUserEmail(@PathVariable Long id, @RequestBody UserEmailUpdateRequest request,@CookieValue(name = "accessToken", required = true) String accessToken, @CookieValue(name = "refreshToken", required = true) String refreshToken){
         try{
-            User updatedUser = userUpdateUseCase.updateEmail(id,request,accessToken,refreshToken);
+            User updatedUser = userUseCase.updateEmail(id,request,accessToken,refreshToken);
             return ResponseEntity.ok(UserEmailUpdateResponse.builder().message("수정 완료").email(request.email()).build());
         }
         catch (UserNotFoundException e){

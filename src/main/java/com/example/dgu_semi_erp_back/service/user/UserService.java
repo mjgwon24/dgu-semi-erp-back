@@ -3,6 +3,7 @@ package com.example.dgu_semi_erp_back.service.user;
 import com.example.dgu_semi_erp_back.common.exception.CustomException;
 import com.example.dgu_semi_erp_back.common.exception.ErrorCode;
 import com.example.dgu_semi_erp_back.common.jwt.JwtUtil;
+import com.example.dgu_semi_erp_back.dto.club.ClubDto.ClubResponse;
 import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.*;
 import com.example.dgu_semi_erp_back.dto.user.UserCommandDto.*;
 import com.example.dgu_semi_erp_back.entity.club.*;
@@ -17,22 +18,26 @@ import com.example.dgu_semi_erp_back.repository.club.ClubMemberRepository;
 import com.example.dgu_semi_erp_back.repository.club.ClubRepository;
 import com.example.dgu_semi_erp_back.repository.auth.UserRepository;
 import com.example.dgu_semi_erp_back.usecase.club.ClubMemberCreateUseCase;
-import com.example.dgu_semi_erp_back.usecase.user.UserUpdateUseCase;
+import com.example.dgu_semi_erp_back.usecase.user.UserUseCase;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class UserService implements UserUpdateUseCase, ClubMemberCreateUseCase {
+public class UserService implements UserUseCase, ClubMemberCreateUseCase {
     private final UserRepository userRepository;
     private final ClubRepository clubRepository;
     private final ClubMemberRepository clubMemberRepository;
@@ -40,6 +45,45 @@ public class UserService implements UserUpdateUseCase, ClubMemberCreateUseCase {
     private final UserClubMemberMapper userClubMemberMapper;
     private final JwtUtil jwtutil;
     private final JPAQueryFactory queryFactory;
+    @Override
+    public Page<ClubSummery> getUserClubs(String accessToken, Pageable pageable) {
+        String userName = jwtutil.getUsernameFromToken(accessToken);
+        User user = userRepository.findByUsername(userName)
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다.0"));
+        Page<ClubMember> clubMemberPage = clubMemberRepository.findClubMembersByUserId(user.getId(), pageable);
+        List<Long> clubIds = clubMemberPage.stream()
+                .map(cm -> cm.getClub().getId())
+                .collect(Collectors.toList());
+        if (clubIds.isEmpty()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        }
+        QClub qClub = QClub.club;
+        QClubMember qMember = QClubMember.clubMember;
+
+        List<ClubSummery> clubSummeryList = queryFactory
+                .select(Projections.constructor(
+                        ClubSummery.class,
+                        qClub.id,
+                        qClub.name,
+                        qClub.affiliation,
+                        qClub.status,
+                        Projections.constructor(
+                                ClubMemberProjection.ClubMemberSummery.class,
+                                qMember.id,
+                                qMember.role,
+                                qMember.status,
+                                qMember.registeredAt
+                        )
+                ))
+                .from(qClub)
+                .join(qMember).on(qMember.club.id.eq(qClub.id))
+                .where(qClub.id.in(clubIds).and(qMember.user.id.eq(user.getId())))
+                .fetch();
+
+        return new PageImpl<>(clubSummeryList, pageable, clubMemberPage.getTotalElements());
+    }
+
+    @Override
     public User findUserByAccessToken(String accessToken) throws UserNotFoundException{
         String userName = jwtutil.getUsernameFromToken(accessToken);
         User user = userRepository.findByUsername(userName)
@@ -47,53 +91,23 @@ public class UserService implements UserUpdateUseCase, ClubMemberCreateUseCase {
         return user;
     }
 
+
+
+
+    @Override
     public UserResponse getUserByToken(String accessToken) throws UserNotFoundException{
         String userName = jwtutil.getUsernameFromToken(accessToken);
         User user = userRepository.findByUsername(userName)
                 .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다.1"));
-        System.out.println(user.getId());
-        List<ClubMember> clubMember = clubMemberRepository.findClubIdsByUserId(user.getId());
-        QClub qClub = QClub.club;
-        QClubMember qMember = QClubMember.clubMember;
-
-
-        List<ClubSummery> clubs = new ArrayList<>();
-        for(int i=0;i<clubMember.size();i++){
-            Long clubId = clubMember.get(i).getClub().getId();
-            ClubSummery club = queryFactory
-                    .select(Projections.constructor(
-                            ClubSummery.class,
-                            qClub.id,
-                            qClub.name,
-                            qClub.affiliation,
-                            qClub.status,
-                            Projections.constructor(
-                                    ClubMemberProjection.ClubMemberSummery.class,
-                                    qMember.id,
-                                    qMember.role,
-                                    qMember.status,
-                                    qMember.registeredAt
-                            )
-                    ))
-                    .from(qClub)
-                    .where(qClub.id.eq(clubId))
-                    .join(qMember).on(qMember.club.id.eq(qClub.id))
-                    .fetchOne();
-            if (club == null) {
-                throw new UserNotFoundException("존재하지 않는 동아리입니다.");
-            }
-            clubs.add(club);
-        }
-
-
         return UserResponse.builder()
                 .id(user.getId())
                 .name(user.getUsername())
                 .email(user.getEmail())
-                .club(clubs)
                 .build();
 
     }
+
+
     @Transactional
     @Override
     public User updateRole(Long id, UserRoleUpdateRequest request,String accessToken,String refreshToken) throws UserNotFoundException,CustomException {

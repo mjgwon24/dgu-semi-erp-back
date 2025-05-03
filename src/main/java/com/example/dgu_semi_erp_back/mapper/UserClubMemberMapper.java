@@ -4,13 +4,11 @@ import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.ClubRegisterRequ
 import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.ClubMemberDetail;
 import com.example.dgu_semi_erp_back.dto.user.UserCommandDto.*;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
+import com.example.dgu_semi_erp_back.entity.auth.user.UserRole;
 import com.example.dgu_semi_erp_back.entity.club.Club;
 import com.example.dgu_semi_erp_back.entity.club.ClubMember;
 import com.example.dgu_semi_erp_back.entity.club.Role;
-import org.mapstruct.AfterMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.*;
 
 import java.time.LocalDateTime;
 
@@ -24,6 +22,7 @@ public interface UserClubMemberMapper {
     ClubMemberDetail toDto(ClubMember clubMember);
 
     @Mapping(source = "ClubRegisterRequestDto.status", target = "status", defaultValue = "HOLD")
+    @Mapping(source = "ClubRegisterRequestDto.role",target = "role", defaultValue = "MEMBER")
     @Mapping(target = "id",ignore = true)
     ClubMember toEntity(ClubRegisterRequest ClubRegisterRequestDto,Club club,User user, LocalDateTime registeredAt);
 

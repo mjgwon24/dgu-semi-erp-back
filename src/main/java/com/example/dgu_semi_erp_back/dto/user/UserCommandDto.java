@@ -33,8 +33,7 @@ public final class UserCommandDto{
     public record UserResponse(
             Long id,
             String name,
-            String email,
-            List<ClubProjection.ClubSummery> club
+            String email
     ) {}
     @Builder
     public record UserRoleUpdateResponse(
