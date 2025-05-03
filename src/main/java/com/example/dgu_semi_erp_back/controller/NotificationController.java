@@ -10,6 +10,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.Map;
+
+@CrossOrigin(origins = "*")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/notifications")
@@ -35,4 +38,10 @@ public class NotificationController {
         return notificationService.getCategoryCounts(userId);
     }
 
+    /* sse 알림 테스트
+@PostMapping("/send-test")
+public void sendTestNotification(@RequestParam Long userId, @RequestBody Map<String, Object> payload) {
+    sseEmitterService.sendNotification(userId, payload);
+}
+*/
 }
