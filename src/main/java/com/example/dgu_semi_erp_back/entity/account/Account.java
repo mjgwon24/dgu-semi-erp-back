@@ -47,4 +47,9 @@ public class Account {
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AccountHistory> accountHistories = new ArrayList<>();
+
+    // soft delete
+    public void markAsDeleted(Instant deletedAt) {
+        this.deletedAt = deletedAt;
+    }
 }
