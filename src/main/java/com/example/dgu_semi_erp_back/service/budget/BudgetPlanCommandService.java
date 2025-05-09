@@ -6,10 +6,12 @@ import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanCommandDto.BudgetPlanC
 import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanCommandDto.BudgetPlanUpdateRequest;
 import com.example.dgu_semi_erp_back.entity.budget.BudgetPlan;
 import com.example.dgu_semi_erp_back.entity.budget.types.BudgetStatus;
+import com.example.dgu_semi_erp_back.entity.club.Club;
 import com.example.dgu_semi_erp_back.mapper.BudgetDtoMapper;
 import com.example.dgu_semi_erp_back.repository.budget.BudgetPlanQueryRepository;
-import com.example.dgu_semi_erp_back.usecase.budget.BudgetCreatePlanUseCase;
-import com.example.dgu_semi_erp_back.usecase.budget.BudgetUpdatePlanUseCase;
+import com.example.dgu_semi_erp_back.repository.club.ClubRepository;
+import com.example.dgu_semi_erp_back.usecase.budget.CreateBudgetPlanUseCase;
+import com.example.dgu_semi_erp_back.usecase.budget.UpdateBudgetPlanUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,15 +20,20 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-public class BudgetPlanCommandService implements BudgetCreatePlanUseCase, BudgetUpdatePlanUseCase {
+public class BudgetPlanCommandService implements CreateBudgetPlanUseCase, UpdateBudgetPlanUseCase {
     private final BudgetPlanQueryRepository budgetPlanRepository;
+    private final ClubRepository clubRepository;
     private final BudgetDtoMapper mapper;
 
+    @Transactional
     @Override
     public BudgetPlan create(BudgetPlanCreateRequest request) {
         LocalDateTime now = LocalDateTime.now();
 
-        BudgetPlan budgetPlan = mapper.toEntity(request, BudgetStatus.HOLD, now, now);
+        Club club = clubRepository.findByName(request.clubName())
+                .orElseThrow(() -> new IllegalArgumentException("Club not found"));
+
+        BudgetPlan budgetPlan = mapper.toEntity(request, club, BudgetStatus.HOLD, now, now);
 
         return budgetPlanRepository.save(budgetPlan);
     }

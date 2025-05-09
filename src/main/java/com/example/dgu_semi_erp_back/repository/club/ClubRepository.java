@@ -8,4 +8,5 @@ import java.util.*;
 public interface ClubRepository extends JpaRepository<Club, Long> {
     Optional<Club> findClubIdById(Long id);
     Optional<ClubSummery> findClubById(Long id);
+    Optional<Club> findByName(String name);
 }
