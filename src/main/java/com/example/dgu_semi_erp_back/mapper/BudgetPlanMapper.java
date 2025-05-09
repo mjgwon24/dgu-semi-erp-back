@@ -19,7 +19,7 @@ import java.util.List;
 import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
 
 @Mapper(componentModel = SPRING)
-public interface BudgetDtoMapper {
+public interface BudgetPlanMapper {
     @Mapping(target = "club", source = "club")
     @Mapping(target = "status", source = "status")
     @Mapping(target = "createdAt", source = "createdAt")

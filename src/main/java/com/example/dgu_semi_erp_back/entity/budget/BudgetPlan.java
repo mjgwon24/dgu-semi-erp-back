@@ -80,4 +80,8 @@ public class BudgetPlan {
         this.planApprover = request.planApprover();
         this.updatedAt = updatedAt;
     }
+
+    public void updateStatus(BudgetStatus status) {
+        this.status = status;
+    }
 }

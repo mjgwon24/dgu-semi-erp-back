@@ -3,7 +3,7 @@ package com.example.dgu_semi_erp_back.service.budget;
 import com.example.dgu_semi_erp_back.common.exception.CustomException;
 import com.example.dgu_semi_erp_back.common.exception.ErrorCode;
 import com.example.dgu_semi_erp_back.entity.budget.types.BudgetStatus;
-import com.example.dgu_semi_erp_back.mapper.BudgetDtoMapper;
+import com.example.dgu_semi_erp_back.mapper.BudgetPlanMapper;
 import com.example.dgu_semi_erp_back.projection.budget.BudgetPlanProjection.BudgetPlanSummary;
 import com.example.dgu_semi_erp_back.projection.budget.BudgetPlanProjection.BudgetPlanDetail;
 import com.example.dgu_semi_erp_back.repository.budget.BudgetPlanQueryRepository;
@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 public class BudgetPlanQueryService implements FindBudgetPlanUseCase, FindFilteredBudgetPlansUseCase {
     private final BudgetPlanQueryRepository budgetPlanRepository;
     private final BudgetPlanRepositorySupport budgetPlanRepositorySupport;
-    private final BudgetDtoMapper mapper;
+    private final BudgetPlanMapper mapper;
 
     @Override
     public BudgetPlanDetail findBudgetPlanById(Long id) {

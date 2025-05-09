@@ -4,19 +4,13 @@ import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanCommandDto.BudgetPlanC
 import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanCommandDto.BudgetPlanCreateResponse;
 import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanCommandDto.BudgetPlanUpdateResponse;
 import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanCommandDto.BudgetPlanUpdateRequest;
-import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanQueryDto;
-import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanQueryDto.BudgetPlanSearchResponse.BudgetPlanSummaryResponse;
+import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanQueryDto.BudgetPlanSearchResponse;
 import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanQueryDto.BudgetPlanDetailResponse;
 import com.example.dgu_semi_erp_back.entity.budget.types.BudgetStatus;
-import com.example.dgu_semi_erp_back.mapper.BudgetDtoMapper;
-import com.example.dgu_semi_erp_back.projection.budget.BudgetPlanProjection.BudgetPlanSummary;
-import com.example.dgu_semi_erp_back.usecase.budget.CreateBudgetPlanUseCase;
-import com.example.dgu_semi_erp_back.usecase.budget.FindFilteredBudgetPlansUseCase;
-import com.example.dgu_semi_erp_back.usecase.budget.FindBudgetPlanUseCase;
-import com.example.dgu_semi_erp_back.usecase.budget.UpdateBudgetPlanUseCase;
+import com.example.dgu_semi_erp_back.mapper.BudgetPlanMapper;
+import com.example.dgu_semi_erp_back.usecase.budget.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -24,7 +18,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,9 +26,11 @@ import java.util.List;
 public class BudgetPlanApi {
     private final CreateBudgetPlanUseCase createBudgetPlanUseCase;
     private final UpdateBudgetPlanUseCase updateBudgetPlanUseCase;
+    private final ApproveBudgetPlanReviewUseCase approveBudgetPlanReviewUseCase;
+    private final ApproveFinalBudgetPlanUseCase approveFinalBudgetPlanUseCase;
     private final FindBudgetPlanUseCase findBudgetPlanUseCase;
     private final FindFilteredBudgetPlansUseCase findFilteredBudgetPlansUseCase;
-    private final BudgetDtoMapper budgetDtoMapper;
+    private final BudgetPlanMapper budgetPlanMapper;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -44,7 +39,7 @@ public class BudgetPlanApi {
     ) {
         var budgetPlan = createBudgetPlanUseCase.create(request);
 
-        return budgetDtoMapper.toCreateResponse(budgetPlan);
+        return budgetPlanMapper.toCreateResponse(budgetPlan);
     }
 
     @PutMapping("/{id}")
@@ -53,20 +48,40 @@ public class BudgetPlanApi {
             @PathVariable Long id,
             @RequestBody @Valid BudgetPlanUpdateRequest request
     ) {
-        var updatedPlan = updateBudgetPlanUseCase.update(id, request);
+        var updatedBudgetPlan = updateBudgetPlanUseCase.update(id, request);
 
-        return budgetDtoMapper.toUpdateResponse(updatedPlan);
+        return budgetPlanMapper.toUpdateResponse(updatedBudgetPlan);
+    }
+
+    @PatchMapping("/{id}/review/approve")
+    @ResponseStatus(HttpStatus.OK)
+    public BudgetPlanUpdateResponse approveReview(
+            @PathVariable Long id,
+            @RequestParam String reviewer
+    ) {
+        var approvedBudgetPlan = approveBudgetPlanReviewUseCase.approveReview(id, reviewer);
+        return budgetPlanMapper.toUpdateResponse(approvedBudgetPlan);
+    }
+
+    @PatchMapping("/{id}/final/approve")
+    @ResponseStatus(HttpStatus.OK)
+    public BudgetPlanUpdateResponse approveFinal(
+            @PathVariable Long id,
+            @RequestParam String approver
+    ) {
+        var approvedBudgetPlan = approveFinalBudgetPlanUseCase.approveFinal(id, approver);
+        return budgetPlanMapper.toUpdateResponse(approvedBudgetPlan);
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public BudgetPlanDetailResponse getBudgetPlanById(@PathVariable Long id) {
-        return budgetDtoMapper.toDetailResponse(findBudgetPlanUseCase.findBudgetPlanById(id));
+        return budgetPlanMapper.toDetailResponse(findBudgetPlanUseCase.findBudgetPlanById(id));
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public BudgetPlanQueryDto.BudgetPlanSearchResponse getFilteredBudgetPlans(
+    public BudgetPlanSearchResponse getFilteredBudgetPlans(
             @PageableDefault(size = 5) Pageable pageable,
             @RequestParam(required = false) String executeType,
             @RequestParam(required = false) String clubName,
@@ -77,7 +92,7 @@ public class BudgetPlanApi {
             @RequestParam(required = false) LocalDateTime createdAt,
             @RequestParam(required = false) BudgetStatus status
     ) {
-        var budgetPlanPage = findFilteredBudgetPlansUseCase.findFilteredBudgetPlans(
+        var filteredBudgetPlanPage = findFilteredBudgetPlansUseCase.findFilteredBudgetPlans(
                 pageable,
                 executeType,
                 clubName,
@@ -89,15 +104,15 @@ public class BudgetPlanApi {
                 status
         );
 
-        var budgetPlanResponses = budgetDtoMapper.toSummaryResponseList(budgetPlanPage.getContent());
+        var budgetPlanResponses = budgetPlanMapper.toSummaryResponseList(filteredBudgetPlanPage.getContent());
 
-        return BudgetPlanQueryDto.BudgetPlanSearchResponse.builder()
+        return BudgetPlanSearchResponse.builder()
                 .content(budgetPlanResponses)
-                .pageNumber(budgetPlanPage.getNumber())
-                .pageSize(budgetPlanPage.getSize())
-                .totalElements(budgetPlanPage.getTotalElements())
-                .totalPages(budgetPlanPage.getTotalPages())
-                .last(budgetPlanPage.isLast())
+                .pageNumber(filteredBudgetPlanPage.getNumber())
+                .pageSize(filteredBudgetPlanPage.getSize())
+                .totalElements(filteredBudgetPlanPage.getTotalElements())
+                .totalPages(filteredBudgetPlanPage.getTotalPages())
+                .last(filteredBudgetPlanPage.isLast())
                 .build();
     }
 }
