@@ -19,9 +19,6 @@ public class ClubMember {
     private Long id;
 
     @Column(nullable = false)
-    private String username;
-
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @ColumnDefault("'HOLD'")
     private MemberStatus status = MemberStatus.ACTIVE;
