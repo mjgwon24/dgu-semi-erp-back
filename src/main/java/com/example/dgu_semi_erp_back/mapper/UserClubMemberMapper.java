@@ -1,5 +1,6 @@
 package com.example.dgu_semi_erp_back.mapper;
 
+import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.ClubLeaveRequest;
 import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.ClubRegisterRequest;
 import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.ClubMemberDetail;
 import com.example.dgu_semi_erp_back.dto.user.UserCommandDto.*;
@@ -7,6 +8,7 @@ import com.example.dgu_semi_erp_back.entity.auth.user.User;
 import com.example.dgu_semi_erp_back.entity.auth.user.UserRole;
 import com.example.dgu_semi_erp_back.entity.club.Club;
 import com.example.dgu_semi_erp_back.entity.club.ClubMember;
+import com.example.dgu_semi_erp_back.entity.club.MemberStatus;
 import com.example.dgu_semi_erp_back.entity.club.Role;
 import org.mapstruct.*;
 
@@ -28,6 +30,11 @@ public interface UserClubMemberMapper {
 
     ClubMember toEntity(@MappingTarget ClubMember clubMember,UserRoleUpdateRequest request);
 
+    @Mapping(source = "ClubLeaveRequestDto.status",target = "status", defaultValue = "INACTIVE")
+    default ClubMember leaveClub(@MappingTarget ClubMember clubMember) {
+        clubMember.changeStatus(MemberStatus.INACTIVE);
+        return clubMember;
+    }
 
     @Mapping(target = "id", ignore = true)
     @Mapping(source = "role", target = "role")
