@@ -18,6 +18,8 @@ import com.example.dgu_semi_erp_back.repository.account.AccountQueryRepository;
 import com.example.dgu_semi_erp_back.repository.auth.UserRepository;
 import com.example.dgu_semi_erp_back.repository.club.ClubMemberRepository;
 import com.example.dgu_semi_erp_back.repository.club.ClubRepository;
+import com.example.dgu_semi_erp_back.service.notification.NotificationService;
+import com.example.dgu_semi_erp_back.entity.notification.Category;
 import com.example.dgu_semi_erp_back.usecase.account.AccountUseCase;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountUpdateRequest;
 import com.querydsl.jpa.impl.JPAUpdateClause;
@@ -31,6 +33,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -44,6 +47,7 @@ public class AccountCommandService implements AccountUseCase {
     private final EntityManager entityManager;
     private final AccountDtoMapper mapper;
     private final ClubMemberRepository clubMemberRepository;
+    private final NotificationService notificationService;
 
     @Override
     public Account create(AccountCreateRequest request) {
@@ -57,7 +61,16 @@ public class AccountCommandService implements AccountUseCase {
 
         Account account = mapper.toEntity(request, user, club, now);
 
-        return accountCommandRepository.save(account);
+        Account savedAccount = accountCommandRepository.save(account);
+
+        notificationService.send(
+            user,
+            Category.BANKBOOK,
+            "통장이 생성되었습니다",
+            club.getName() + " 동아리의 통장이 생성되었습니다."
+        );
+
+        return savedAccount;
     }
 
     @Override
@@ -101,8 +114,17 @@ public class AccountCommandService implements AccountUseCase {
             throw new AccountNotFoundException("해당 통장이 존재하지 않습니다.");
         }
 
-        return accountQueryRepository.findById(accountId)
+        Account updatedAccount = accountQueryRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotFoundException("해당 통장이 존재하지 않습니다."));
+
+        notificationService.send(
+            user,
+            Category.BANKBOOK,
+            "통장이 수정되었습니다",
+            club.getName() + " 동아리의 통장이 수정되었습니다."
+        );
+
+        return updatedAccount;
     }
 
     /**
@@ -146,5 +168,12 @@ public class AccountCommandService implements AccountUseCase {
         // soft delete
         account.markAsDeleted(Instant.now());
         accountCommandRepository.save(account);
+
+        notificationService.send(
+            account.getUser(),
+            Category.BANKBOOK,
+            "통장이 삭제되었습니다",
+            account.getClub().getName() + " 동아리의 통장이 삭제되었습니다."
+        );
     }
 }
