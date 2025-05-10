@@ -1,10 +1,8 @@
 package com.example.dgu_semi_erp_back.dto.budget;
 
-import com.example.dgu_semi_erp_back.entity.budget.BudgetPlan;
 import com.example.dgu_semi_erp_back.entity.budget.types.BudgetStatus;
 import com.example.dgu_semi_erp_back.entity.budget.types.PaymentType;
 import lombok.Builder;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
 
@@ -17,7 +15,7 @@ public final class BudgetPlanCommandDto {
             String clubName,
             PaymentType paymentType,
             String content,
-            String author,
+            String drafter,
             LocalDateTime expectedPaymentDate,
             int paymentAmount,
             String planReviewer,
@@ -31,7 +29,7 @@ public final class BudgetPlanCommandDto {
             String clubName,
             PaymentType paymentType,
             String content,
-            String author,
+            String drafter,
             LocalDateTime expectedPaymentDate,
             int paymentAmount,
             BudgetStatus status,
@@ -47,7 +45,7 @@ public final class BudgetPlanCommandDto {
             String executeType,
             PaymentType paymentType,
             String content,
-            String author,
+            String drafter,
             LocalDateTime expectedPaymentDate,
             int paymentAmount,
             String planReviewer,
@@ -63,7 +61,7 @@ public final class BudgetPlanCommandDto {
             String clubName,
             PaymentType paymentType,
             String content,
-            String author,
+            String drafter,
             LocalDateTime expectedPaymentDate,
             int paymentAmount,
             BudgetStatus status,
@@ -71,6 +69,12 @@ public final class BudgetPlanCommandDto {
             String planApprover,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
+    ) {}
+
+    @Builder
+    public record BudgetPlanRejectRequest(
+        String reviewer,
+        String approver
     ) {}
 
 }
