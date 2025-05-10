@@ -189,13 +189,14 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
         Long clubId = clubLeaveRequest.clubId();
         ClubMember clubMember = clubMemberRepository.findClubMemberByUserIdAndClubId(user.getId(),clubId).orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));;
         ClubProjection.ClubDetail club = clubRepository.findDetailById(clubLeaveRequest.clubId()).orElseThrow(() -> new ClubNotFoundException("존재하지 않는 동아리입니다."));
-        if(Objects.equals(user.getId(), target_user.getId())||clubMember.getRole()==Role.LEADER||clubMember.getRole()==Role.VICE_LEADER&&clubMember.getStatus()!=MemberStatus.INACTIVE){
+        if(clubMember.getStatus()!=MemberStatus.INACTIVE&&(Objects.equals(user.getId(), target_user.getId())||clubMember.getRole()==Role.LEADER||clubMember.getRole()==Role.VICE_LEADER)){
             ClubMember newUser = userClubMemberMapper.leaveClub(clubMember);
             clubMemberRepository.save(newUser);
             return ClubLeaveResponse.builder().message("동아리 탈퇴 성공").club(club).build();
         }
         else if(clubMember.getStatus()==MemberStatus.INACTIVE){
-            throw new UserNotFoundException("이미 탈퇴한 사용자입니다.");
+            //이미 탈퇴했는데 다시 요청한 경우
+            throw new CustomException(ErrorCode.INVALID_REQUEST);
         }
         else{
             throw new CustomException(ErrorCode.UNAUTHORIZED_ACCESS);
