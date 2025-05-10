@@ -5,6 +5,7 @@ import com.example.dgu_semi_erp_back.common.exception.ErrorCode;
 import com.example.dgu_semi_erp_back.common.jwt.JwtUtil;
 import com.example.dgu_semi_erp_back.dto.club.ClubDto.ClubResponse;
 import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.*;
+import com.example.dgu_semi_erp_back.dto.common.PaginationInfo;
 import com.example.dgu_semi_erp_back.dto.user.UserCommandDto.*;
 import com.example.dgu_semi_erp_back.entity.club.*;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
@@ -13,7 +14,7 @@ import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
 import com.example.dgu_semi_erp_back.mapper.UserClubMemberMapper;
 import com.example.dgu_semi_erp_back.mapper.UserMapper;
 import com.example.dgu_semi_erp_back.projection.club.ClubMemberProjection;
-import com.example.dgu_semi_erp_back.projection.club.ClubProjection.ClubSummery;
+import com.example.dgu_semi_erp_back.projection.club.ClubProjection.ClubSummary;
 import com.example.dgu_semi_erp_back.repository.club.ClubMemberRepository;
 import com.example.dgu_semi_erp_back.repository.club.ClubRepository;
 import com.example.dgu_semi_erp_back.repository.auth.UserRepository;
@@ -46,7 +47,7 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase {
     private final JwtUtil jwtutil;
     private final JPAQueryFactory queryFactory;
     @Override
-    public Page<ClubSummery> getUserClubs(String accessToken, Pageable pageable) {
+    public ClubMemberSearchResponse getUserClubs(String accessToken, Pageable pageable) {
         String userName = jwtutil.getUsernameFromToken(accessToken);
         User user = userRepository.findByUsername(userName)
                 .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다.0"));
@@ -55,14 +56,22 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase {
                 .map(cm -> cm.getClub().getId())
                 .collect(Collectors.toList());
         if (clubIds.isEmpty()) {
-            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+            return ClubMemberSearchResponse.builder()
+                    .content(null)
+                    .paginationInfo(new PaginationInfo(
+                            clubMemberPage.getNumber(),
+                            clubMemberPage.getSize(),
+                            clubMemberPage.getTotalPages(),
+                            clubMemberPage.getTotalElements()
+                    ))
+                    .build();
         }
         QClub qClub = QClub.club;
         QClubMember qMember = QClubMember.clubMember;
 
-        List<ClubSummery> clubSummeryList = queryFactory
+        List<ClubSummary> clubSummeryList = queryFactory
                 .select(Projections.constructor(
-                        ClubSummery.class,
+                        ClubSummary.class,
                         qClub.id,
                         qClub.name,
                         qClub.affiliation,
@@ -78,9 +87,18 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase {
                 .from(qClub)
                 .join(qMember).on(qMember.club.id.eq(qClub.id))
                 .where(qClub.id.in(clubIds).and(qMember.user.id.eq(user.getId())))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
-
-        return new PageImpl<>(clubSummeryList, pageable, clubMemberPage.getTotalElements());
+        return ClubMemberSearchResponse.builder()
+                .content(clubSummeryList)
+                .paginationInfo(new PaginationInfo(
+                        clubMemberPage.getNumber(),
+                        clubMemberPage.getSize(),
+                        clubMemberPage.getTotalPages(),
+                        clubMemberPage.getTotalElements()
+                ))
+            .build();
     }
 
     @Override
