@@ -10,11 +10,17 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 
 public class ClubProjection {
-    public record ClubSummery(
+    public record ClubSummary(
             Long id,
             String name,
             String affiliation,
             ClubStatus status,
             ClubMemberProjection.ClubMemberSummery clubMembers
+    ) {}
+    public record ClubDetail(
+            Long id,
+            String name,
+            String affiliation,
+            ClubStatus status
     ) {}
 }
