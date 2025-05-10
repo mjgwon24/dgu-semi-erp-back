@@ -3,7 +3,7 @@ package com.example.dgu_semi_erp_back.repository.budget;
 import com.example.dgu_semi_erp_back.entity.budget.BudgetPlan;
 import com.example.dgu_semi_erp_back.entity.budget.QBudgetPlan;
 import com.example.dgu_semi_erp_back.entity.budget.types.BudgetStatus;
-import com.example.dgu_semi_erp_back.projection.budget.BudgetPlanProjection.BudgetPlanSummary;
+import com.example.dgu_semi_erp_back.projection.budget.BudgetPlanProjection;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import org.springframework.data.domain.Page;
@@ -22,7 +22,7 @@ public class BudgetPlanRepositorySupport extends QuerydslRepositorySupport {
         super(BudgetPlan.class);
     }
 
-    public Page<BudgetPlanSummary> findFilteredBudgetPlans(
+    public Page<BudgetPlanProjection.BudgetPlanSummaryProjection> findFilteredBudgetPlans(
             Pageable pageable,
             String executeType,
             String clubName,
@@ -40,12 +40,12 @@ public class BudgetPlanRepositorySupport extends QuerydslRepositorySupport {
 
         var query = getQuerydsl().createQuery()
                 .select(Projections.constructor(
-                        BudgetPlanSummary.class,
+                        BudgetPlanProjection.BudgetPlanSummaryProjection.class,
                         budgetPlan.id,
                         budgetPlan.executeType,
                         budgetPlan.club,
                         budgetPlan.content,
-                        budgetPlan.author,
+                        budgetPlan.drafter,
                         budgetPlan.expectedPaymentDate,
                         budgetPlan.paymentAmount,
                         budgetPlan.createdAt,
@@ -100,7 +100,7 @@ public class BudgetPlanRepositorySupport extends QuerydslRepositorySupport {
             conditions = conditions.and(budgetPlan.content.like("%" + content + "%"));
         }
         if (author != null && !author.isEmpty()) {
-            conditions = conditions.and(budgetPlan.author.like("%" + author + "%"));
+            conditions = conditions.and(budgetPlan.drafter.like("%" + author + "%"));
         }
         if (expectedPaymentDate != null) {
             conditions = conditions.and(budgetPlan.expectedPaymentDate.eq(expectedPaymentDate));

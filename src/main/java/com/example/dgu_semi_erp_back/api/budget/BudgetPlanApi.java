@@ -1,5 +1,6 @@
 package com.example.dgu_semi_erp_back.api.budget;
 
+import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanCommandDto.BudgetPlanRejectRequest;
 import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanCommandDto.BudgetPlanCreateRequest;
 import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanCommandDto.BudgetPlanCreateResponse;
 import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanCommandDto.BudgetPlanUpdateResponse;
@@ -28,6 +29,7 @@ public class BudgetPlanApi {
     private final UpdateBudgetPlanUseCase updateBudgetPlanUseCase;
     private final ApproveBudgetPlanReviewUseCase approveBudgetPlanReviewUseCase;
     private final ApproveFinalBudgetPlanUseCase approveFinalBudgetPlanUseCase;
+    private final RejectBudgetPlanUseCase rejectBudgetPlanUseCase;
     private final FindBudgetPlanUseCase findBudgetPlanUseCase;
     private final FindFilteredBudgetPlansUseCase findFilteredBudgetPlansUseCase;
     private final BudgetPlanMapper budgetPlanMapper;
@@ -73,10 +75,20 @@ public class BudgetPlanApi {
         return budgetPlanMapper.toUpdateResponse(approvedBudgetPlan);
     }
 
+    @PatchMapping("/{id}/reject")
+    @ResponseStatus(HttpStatus.OK)
+    public BudgetPlanUpdateResponse reject(
+            @PathVariable Long id,
+            @RequestBody BudgetPlanRejectRequest budgetPlanRejectRequest
+    ) {
+        var rejectedBudgetPlan = rejectBudgetPlanUseCase.reject(id, budgetPlanRejectRequest);
+        return budgetPlanMapper.toUpdateResponse(rejectedBudgetPlan);
+    }
+
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public BudgetPlanDetailResponse getBudgetPlanById(@PathVariable Long id) {
-        return budgetPlanMapper.toDetailResponse(findBudgetPlanUseCase.findBudgetPlanById(id));
+        return budgetPlanMapper.toDetailResponse(findBudgetPlanUseCase.findById(id));
     }
 
     @GetMapping
@@ -86,18 +98,18 @@ public class BudgetPlanApi {
             @RequestParam(required = false) String executeType,
             @RequestParam(required = false) String clubName,
             @RequestParam(required = false) String content,
-            @RequestParam(required = false) String author,
+            @RequestParam(required = false) String drafter,
             @RequestParam(required = false) LocalDateTime expectedPaymentDate,
             @RequestParam(required = false) Integer paymentAmount,
             @RequestParam(required = false) LocalDateTime createdAt,
             @RequestParam(required = false) BudgetStatus status
     ) {
-        var filteredBudgetPlanPage = findFilteredBudgetPlansUseCase.findFilteredBudgetPlans(
+        var filteredBudgetPlanPage = findFilteredBudgetPlansUseCase.findSummaryByFilter(
                 pageable,
                 executeType,
                 clubName,
                 content,
-                author,
+                drafter,
                 expectedPaymentDate,
                 paymentAmount,
                 createdAt,

@@ -4,8 +4,7 @@ import com.example.dgu_semi_erp_back.common.exception.CustomException;
 import com.example.dgu_semi_erp_back.common.exception.ErrorCode;
 import com.example.dgu_semi_erp_back.entity.budget.types.BudgetStatus;
 import com.example.dgu_semi_erp_back.mapper.BudgetPlanMapper;
-import com.example.dgu_semi_erp_back.projection.budget.BudgetPlanProjection.BudgetPlanSummary;
-import com.example.dgu_semi_erp_back.projection.budget.BudgetPlanProjection.BudgetPlanDetail;
+import com.example.dgu_semi_erp_back.projection.budget.BudgetPlanProjection.*;
 import com.example.dgu_semi_erp_back.repository.budget.BudgetPlanQueryRepository;
 import com.example.dgu_semi_erp_back.repository.budget.BudgetPlanRepositorySupport;
 import com.example.dgu_semi_erp_back.usecase.budget.FindFilteredBudgetPlansUseCase;
@@ -25,18 +24,18 @@ public class BudgetPlanQueryService implements FindBudgetPlanUseCase, FindFilter
     private final BudgetPlanMapper mapper;
 
     @Override
-    public BudgetPlanDetail findBudgetPlanById(Long id) {
+    public BudgetPlanDetailProjection findById(Long id) {
         return budgetPlanRepository.findBudgetPlanById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.BUDGET_PLAN_NOT_FOUND));
     }
 
     @Override
-    public Page<BudgetPlanSummary> findFilteredBudgetPlans(
+    public Page<BudgetPlanSummaryProjection> findSummaryByFilter(
             Pageable pageable,
             String executeType,
             String clubName,
             String content,
-            String author,
+            String drafter,
             LocalDateTime expectedPaymentDate,
             Integer paymentAmount,
             LocalDateTime createdAt,
@@ -47,7 +46,7 @@ public class BudgetPlanQueryService implements FindBudgetPlanUseCase, FindFilter
                 executeType,
                 clubName,
                 content,
-                author,
+                drafter,
                 expectedPaymentDate,
                 paymentAmount,
                 createdAt,

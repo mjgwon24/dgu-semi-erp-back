@@ -43,7 +43,7 @@ public class BudgetUsage {
     private String content; // 내용
 
     @Column(nullable = false)
-    private String author; // 기안자
+    private String drafter; // 기안자
 
     @Column(nullable = false)
     private int paymentAmount; // 금액

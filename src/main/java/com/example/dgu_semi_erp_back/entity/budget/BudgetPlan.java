@@ -39,7 +39,7 @@ public class BudgetPlan {
     private String content; // 내용
 
     @Column(nullable = false)
-    private String author; // 기안자
+    private String drafter; // 기안자
 
     @Column(nullable = false)
     private LocalDateTime expectedPaymentDate; // 결제 예정일
@@ -68,13 +68,13 @@ public class BudgetPlan {
             builderMethodName = "prepareUpdate",
             buildMethodName = "update"
     )
-    public void update(BudgetPlanUpdateRequest request, LocalDateTime updatedAt) {
+    public void update(BudgetPlanUpdateRequest request, BudgetPlan budgetPlan, LocalDateTime updatedAt) {
         this.executeType = request.executeType();
         this.paymentType = request.paymentType();
         this.content = request.content();
-        this.author = request.author();
+        this.drafter = request.drafter();
         this.expectedPaymentDate = request.expectedPaymentDate();
-        this.status = BudgetStatus.HOLD;
+        this.status = budgetPlan.getStatus();
         this.paymentAmount = request.paymentAmount();
         this.planReviewer = request.planReviewer();
         this.planApprover = request.planApprover();

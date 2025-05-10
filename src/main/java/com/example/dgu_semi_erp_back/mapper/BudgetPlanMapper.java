@@ -8,8 +8,8 @@ import com.example.dgu_semi_erp_back.dto.budget.BudgetPlanQueryDto.BudgetPlanDet
 import com.example.dgu_semi_erp_back.entity.budget.BudgetPlan;
 import com.example.dgu_semi_erp_back.entity.budget.types.BudgetStatus;
 import com.example.dgu_semi_erp_back.entity.club.Club;
-import com.example.dgu_semi_erp_back.projection.budget.BudgetPlanProjection.BudgetPlanSummary;
-import com.example.dgu_semi_erp_back.projection.budget.BudgetPlanProjection.BudgetPlanDetail;
+import com.example.dgu_semi_erp_back.projection.budget.BudgetPlanProjection;
+import com.example.dgu_semi_erp_back.projection.budget.BudgetPlanProjection.BudgetPlanSummaryProjection;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -40,10 +40,10 @@ public interface BudgetPlanMapper {
     BudgetPlanUpdateResponse toUpdateResponse(BudgetPlan budgetPlan);
 
     @Mapping(target = "clubName", source = "club.name")
-    BudgetPlanDetailResponse toDetailResponse(BudgetPlanDetail budgetPlanDetail);
+    BudgetPlanDetailResponse toDetailResponse(BudgetPlanProjection.BudgetPlanDetailProjection budgetPlanDetailProjection);
 
     @Mapping(target = "clubName", source = "club.name")
-    BudgetPlanSummaryResponse toSummaryResponse(BudgetPlanSummary summary);
+    BudgetPlanSummaryResponse toSummaryResponse(BudgetPlanSummaryProjection summary);
 
-    List<BudgetPlanSummaryResponse> toSummaryResponseList(List<BudgetPlanSummary> summaries);
+    List<BudgetPlanSummaryResponse> toSummaryResponseList(List<BudgetPlanProjection.BudgetPlanSummaryProjection> summaries);
 }

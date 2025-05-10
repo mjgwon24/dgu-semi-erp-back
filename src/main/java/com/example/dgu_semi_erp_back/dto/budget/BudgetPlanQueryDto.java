@@ -2,7 +2,6 @@ package com.example.dgu_semi_erp_back.dto.budget;
 
 import com.example.dgu_semi_erp_back.entity.budget.types.BudgetStatus;
 import com.example.dgu_semi_erp_back.entity.budget.types.PaymentType;
-import com.example.dgu_semi_erp_back.entity.club.Club;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -18,7 +17,7 @@ public final class BudgetPlanQueryDto {
             String clubName,
             PaymentType paymentType,
             String content,
-            String author,
+            String drafter,
             LocalDateTime expectedPaymentDate,
             Integer paymentAmount,
             BudgetStatus status,
@@ -43,7 +42,7 @@ public final class BudgetPlanQueryDto {
                 String executeType,
                 String clubName,
                 String content,
-                String author,
+                String drafter,
                 LocalDateTime expectedPaymentDate,
                 Integer paymentAmount,
                 LocalDateTime createdAt,
