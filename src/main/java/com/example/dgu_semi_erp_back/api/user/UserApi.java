@@ -46,7 +46,6 @@ public class UserApi {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
         catch (Exception e){
-            System.out.println(e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
@@ -58,7 +57,6 @@ public class UserApi {
             return ResponseEntity.ok(user);
         }
         catch (UserNotFoundException e){
-            System.out.println(e.getMessage());
             return ResponseEntity.notFound().build();
         }
     }
@@ -69,8 +67,6 @@ public class UserApi {
             @PageableDefault(size = 5) Pageable pageable
     ){
         try{
-            System.out.println(pageable.getPageSize());
-            System.out.println(pageable.getPageNumber());
             ClubMemberSearchResponse response = userService.getUserClubs(accessToken,pageable);
             return ResponseEntity.ok(response);
         }
@@ -97,16 +93,13 @@ public class UserApi {
     @DeleteMapping("/me/club")
     public ResponseEntity<ClubLeaveResponse> leaveClub(@RequestBody ClubLeaveRequest clubLeaveDto,@CookieValue(name = "accessToken", required = true) String accessToken, @CookieValue(name = "refreshToken", required = true) String refreshToken){
         try{
-            System.out.println("=====================");
             ClubLeaveResponse response = userService.leaveClubMember(clubLeaveDto,accessToken,refreshToken);
             return ResponseEntity.ok(response);
         }
         catch(UserNotFoundException e){
-            System.out.println(e.getMessage());
             return ResponseEntity.notFound().build();
         }
         catch(ClubNotFoundException e){
-            System.out.println(e.getMessage());
             return ResponseEntity.notFound().build();
         }
     }
