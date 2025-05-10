@@ -53,7 +53,7 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
     public ClubMemberSearchResponse getUserClubs(String accessToken, Pageable pageable) {
         String userName = jwtutil.getUsernameFromToken(accessToken);
         User user = userRepository.findByUsername(userName)
-                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다.0"));
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
         Page<ClubMember> clubMemberPage = clubMemberRepository.findClubMembersByUserId(user.getId(), pageable);
         List<Long> clubIds = clubMemberPage.stream()
                 .map(cm -> cm.getClub().getId())
@@ -108,7 +108,7 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
     public User findUserByAccessToken(String accessToken) throws UserNotFoundException{
         String userName = jwtutil.getUsernameFromToken(accessToken);
         User user = userRepository.findByUsername(userName)
-                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다. 111"));
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
         return user;
     }
 
@@ -119,7 +119,7 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
     public UserResponse getUserByToken(String accessToken) throws UserNotFoundException{
         String userName = jwtutil.getUsernameFromToken(accessToken);
         User user = userRepository.findByUsername(userName)
-                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다.1"));
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
         return UserResponse.builder()
                 .id(user.getId())
                 .name(user.getUsername())
@@ -137,7 +137,7 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
         Role userRole = clubMemberRepository.findClubMemberByUserIdAndClubId(user.getId(),request.clubId()).orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다.")).getRole();
         if(userRole==Role.LEADER||userRole==Role.VICE_LEADER|| Objects.equals(user.getId(), id)){
             User target_user = userRepository.findUserById(id)
-                    .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다.2"));
+                    .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
             ClubMember clubMember = clubMemberRepository.findClubMemberByUserIdAndClubId(target_user.getId(),club.getId()).orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
             ClubMember newClubMember = userClubMemberMapper.toEntity(clubMember,request);
             return clubMemberRepository.save(newClubMember).getUser();
@@ -152,7 +152,7 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
         try{
             User user = findUserByAccessToken(accessToken);
             User target_user = userRepository.findUserById(userId)
-                    .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다.5"));
+                    .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
             if(Objects.equals(user.getId(), target_user.getId())||user.getRole()== UserRole.ADMIN){
                 User newUser = userMapper.toEntity(target_user, request);
                 return userRepository.save(newUser);
@@ -185,14 +185,17 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
     @Override
     public ClubLeaveResponse leaveClubMember(ClubLeaveRequest clubLeaveRequest,String accessToken,String refreshToken) throws ClubNotFoundException,UserNotFoundException {
         User user = findUserByAccessToken(accessToken);
-        User target_user = userRepository.findUserById(clubLeaveRequest.userId()).orElseThrow(()->new UserNotFoundException("존재하지 않는 사용자입니다.188"));
+        User target_user = userRepository.findUserById(clubLeaveRequest.userId()).orElseThrow(()->new UserNotFoundException("존재하지 않는 사용자입니다."));
         Long clubId = clubLeaveRequest.clubId();
-        ClubMember clubMember = clubMemberRepository.findClubMemberByUserIdAndClubId(user.getId(),clubId).orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다.190"));;
+        ClubMember clubMember = clubMemberRepository.findClubMemberByUserIdAndClubId(user.getId(),clubId).orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));;
         ClubProjection.ClubDetail club = clubRepository.findDetailById(clubLeaveRequest.clubId()).orElseThrow(() -> new ClubNotFoundException("존재하지 않는 동아리입니다."));
-        if(Objects.equals(user.getId(), target_user.getId())||clubMember.getRole()==Role.LEADER||clubMember.getRole()==Role.VICE_LEADER){
+        if(Objects.equals(user.getId(), target_user.getId())||clubMember.getRole()==Role.LEADER||clubMember.getRole()==Role.VICE_LEADER&&clubMember.getStatus()!=MemberStatus.INACTIVE){
             ClubMember newUser = userClubMemberMapper.leaveClub(clubMember);
             clubMemberRepository.save(newUser);
             return ClubLeaveResponse.builder().message("동아리 탈퇴 성공").club(club).build();
+        }
+        else if(clubMember.getStatus()==MemberStatus.INACTIVE){
+            throw new UserNotFoundException("이미 탈퇴한 사용자입니다.");
         }
         else{
             throw new CustomException(ErrorCode.UNAUTHORIZED_ACCESS);
