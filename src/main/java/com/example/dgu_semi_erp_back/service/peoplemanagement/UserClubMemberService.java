@@ -34,7 +34,6 @@ public class UserClubMemberService {
     public UserClubMemberDto.ClubMemberDetailSearchResponse getClubMembers(Long clubId, String status, Pageable pageable) {
         ClubProjection.ClubDetail club = clubRepository.findDetailById(clubId).orElseThrow(()-> new ClubNotFoundException("해당 동아리가 존재하지 않습니다."));
         Page<ClubMember> clubmemberPage = queryRepository.findClubMembersByClubIdAndStatus(clubId, MemberStatus.valueOf(status), pageable);
-        System.out.println(clubmemberPage.getContent().size());
         QClub qClub = QClub.club;
         QClubMember qMember = QClubMember.clubMember;
         QUser qUser = QUser.user;
@@ -60,7 +59,6 @@ public class UserClubMemberService {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        System.out.println(clubMemberDetails);
         return UserClubMemberDto.ClubMemberDetailSearchResponse.builder()
                 .club(club)
                 .content(clubMemberDetails)

@@ -10,6 +10,7 @@ import com.example.dgu_semi_erp_back.projection.club.ClubProjection.ClubSummary;
 import com.example.dgu_semi_erp_back.service.peoplemanagement.UserClubMemberService;
 import com.example.dgu_semi_erp_back.service.user.UserService;
 import com.example.dgu_semi_erp_back.usecase.club.ClubMemberCreateUseCase;
+import com.example.dgu_semi_erp_back.usecase.club.ClubMemberUpdateUseCase;
 import com.example.dgu_semi_erp_back.usecase.user.UserUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,7 +29,6 @@ public class UserApi {
     private final UserService userService;
     private final UserClubMemberService clubMemberService;
     private final UserUseCase userUseCase;
-    private final ClubMemberCreateUseCase clubMemberCreateUseCase;
 
     @GetMapping
     public ResponseEntity<ClubMemberDetailSearchResponse> getClubMembers(
@@ -46,7 +46,6 @@ public class UserApi {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
         catch (Exception e){
-            System.out.println(e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
@@ -58,7 +57,6 @@ public class UserApi {
             return ResponseEntity.ok(user);
         }
         catch (UserNotFoundException e){
-            System.out.println(e.getMessage());
             return ResponseEntity.notFound().build();
         }
     }
@@ -69,8 +67,6 @@ public class UserApi {
             @PageableDefault(size = 5) Pageable pageable
     ){
         try{
-            System.out.println(pageable.getPageSize());
-            System.out.println(pageable.getPageNumber());
             ClubMemberSearchResponse response = userService.getUserClubs(accessToken,pageable);
             return ResponseEntity.ok(response);
         }
@@ -82,9 +78,22 @@ public class UserApi {
         }
     }
     @PostMapping("/me/club")
-    public  ResponseEntity<ClubRegisterResponse> registerClub(@RequestBody ClubRegisterRequest clubRegisterDto,@CookieValue(name = "accessToken", required = true) String accessToken, @CookieValue(name = "refreshToken", required = true) String refreshToken){
+    public ResponseEntity<ClubRegisterResponse> registerClub(@RequestBody ClubRegisterRequest clubRegisterDto,@CookieValue(name = "accessToken", required = true) String accessToken, @CookieValue(name = "refreshToken", required = true) String refreshToken){
         try{
-            ClubRegisterResponse response = clubMemberCreateUseCase.createClubMember(clubRegisterDto,accessToken,refreshToken);
+            ClubRegisterResponse response = userService.createClubMember(clubRegisterDto,accessToken,refreshToken);
+            return ResponseEntity.ok(response);
+        }
+        catch(UserNotFoundException e){
+            return ResponseEntity.notFound().build();
+        }
+        catch(ClubNotFoundException e){
+            return ResponseEntity.notFound().build();
+        }
+    }
+    @DeleteMapping("/me/club")
+    public ResponseEntity<ClubLeaveResponse> leaveClub(@RequestBody ClubLeaveRequest clubLeaveDto,@CookieValue(name = "accessToken", required = true) String accessToken, @CookieValue(name = "refreshToken", required = true) String refreshToken){
+        try{
+            ClubLeaveResponse response = userService.leaveClubMember(clubLeaveDto,accessToken,refreshToken);
             return ResponseEntity.ok(response);
         }
         catch(UserNotFoundException e){

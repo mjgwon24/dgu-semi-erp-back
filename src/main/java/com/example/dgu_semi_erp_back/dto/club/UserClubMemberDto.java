@@ -26,6 +26,11 @@ public final class UserClubMemberDto {
     @Builder
     public record ClubRegisterResponse (String message, Club club){}
     @Builder
+    public record ClubLeaveRequest(Long userId,Long clubId){}
+    @Builder
+    public record ClubLeaveResponse(String message, ClubProjection.ClubDetail club){}
+
+    @Builder
     public record ClubMemberDetail(
             String name,
             String major,
