@@ -18,6 +18,10 @@ public class JwtInterceptor implements HandlerInterceptor {
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7); // "Bearer " 부분 제거
             if (jwtUtil.isTokenValid(token)) {
+                // 사용자 정보 추출 및 request에 저장
+                String username = jwtUtil.getUsernameFromToken(token);
+                request.setAttribute("username", username);
+
                 // 토큰이 유효하면 요청을 계속 진행
                 return true;
             } else {

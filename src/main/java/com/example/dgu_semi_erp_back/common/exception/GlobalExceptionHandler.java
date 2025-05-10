@@ -1,6 +1,7 @@
 package com.example.dgu_semi_erp_back.common.exception;
 
 import com.example.dgu_semi_erp_back.common.exception.response.ApiErrorResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

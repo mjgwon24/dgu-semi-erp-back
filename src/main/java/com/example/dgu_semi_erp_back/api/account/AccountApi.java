@@ -10,6 +10,7 @@ import com.example.dgu_semi_erp_back.dto.common.PaginationInfo;
 import com.example.dgu_semi_erp_back.exception.AccountNotFoundException;
 import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
+import com.example.dgu_semi_erp_back.service.notification.NotificationService;
 import com.example.dgu_semi_erp_back.usecase.account.AccountUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Validated
 public class AccountApi {
     private final AccountUseCase accountUseCase;
-
+    private final NotificationService notificationService;
     /**
      * 통장 개설
      * @param request 통장 번호, 개설일, 동아리 ID, 소유주 ID
@@ -44,6 +45,13 @@ public class AccountApi {
     ){
         try {
             var account = accountUseCase.create(request);
+
+            notificationService.send(
+                account.getUser(),
+                com.example.dgu_semi_erp_back.entity.notification.Category.BANKBOOK,
+                "통장이 개설되었습니다.",
+                "계좌번호: " + account.getNumber()
+            );
 
             return AccountCreateResponse.builder()
                     .account(account)
@@ -112,6 +120,13 @@ public class AccountApi {
         try {
             var account = accountUseCase.updateAccount(accountId, request);
 
+            notificationService.send(
+                account.getUser(),
+                com.example.dgu_semi_erp_back.entity.notification.Category.BANKBOOK,
+                "통장 정보가 수정되었습니다.",
+                "계좌번호: " + account.getNumber()
+            );
+
             return AccountInfoResponse.builder()
                     .number(account.getNumber())
                     .createdAt(account.getCreatedAt())
@@ -135,6 +150,14 @@ public class AccountApi {
             @PathVariable("accountId") Long accountId
     ) {
         try {
+            var account = accountUseCase.getAccountByClubId(accountId);
+            notificationService.send(
+                account.getUser(),
+                com.example.dgu_semi_erp_back.entity.notification.Category.BANKBOOK,
+                "통장이 삭제되었습니다.",
+                "계좌번호: " + account.getNumber()
+            );
+
             accountUseCase.deleteAccount(accountId);
             return ResponseEntity.ok("통장이 정상적으로 삭제되었습니다.");
         } catch (AccountNotFoundException e) {

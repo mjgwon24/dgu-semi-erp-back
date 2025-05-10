@@ -9,12 +9,12 @@ import java.time.LocalDateTime;
 
 public final class BudgetPlanProjection {
     @Builder
-    public record BudgetPlanSummary(
+    public record BudgetPlanSummaryProjection(
             Long id,
             String executeType,
             Club club,
             String content,
-            String author,
+            String drafter,
             LocalDateTime expectedPaymentDate,
             int paymentAmount,
             LocalDateTime createdAt,
@@ -22,13 +22,13 @@ public final class BudgetPlanProjection {
     ) {}
 
     @Builder
-    public record BudgetPlanDetail(
+    public record BudgetPlanDetailProjection(
             Long id,
             String executeType,
             Club club,
             PaymentType paymentType,
             String content,
-            String author,
+            String drafter,
             LocalDateTime expectedPaymentDate,
             int paymentAmount,
             BudgetStatus status,
