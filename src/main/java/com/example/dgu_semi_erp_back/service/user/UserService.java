@@ -7,6 +7,7 @@ import com.example.dgu_semi_erp_back.dto.club.ClubDto.ClubResponse;
 import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.*;
 import com.example.dgu_semi_erp_back.dto.common.PaginationInfo;
 import com.example.dgu_semi_erp_back.dto.user.UserCommandDto.*;
+import com.example.dgu_semi_erp_back.entity.auth.user.UserRole;
 import com.example.dgu_semi_erp_back.entity.club.*;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
 import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
@@ -14,11 +15,13 @@ import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
 import com.example.dgu_semi_erp_back.mapper.UserClubMemberMapper;
 import com.example.dgu_semi_erp_back.mapper.UserMapper;
 import com.example.dgu_semi_erp_back.projection.club.ClubMemberProjection;
+import com.example.dgu_semi_erp_back.projection.club.ClubProjection;
 import com.example.dgu_semi_erp_back.projection.club.ClubProjection.ClubSummary;
 import com.example.dgu_semi_erp_back.repository.club.ClubMemberRepository;
 import com.example.dgu_semi_erp_back.repository.club.ClubRepository;
 import com.example.dgu_semi_erp_back.repository.auth.UserRepository;
 import com.example.dgu_semi_erp_back.usecase.club.ClubMemberCreateUseCase;
+import com.example.dgu_semi_erp_back.usecase.club.ClubMemberUpdateUseCase;
 import com.example.dgu_semi_erp_back.usecase.user.UserUseCase;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -38,7 +41,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class UserService implements UserUseCase, ClubMemberCreateUseCase {
+public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMemberUpdateUseCase {
     private final UserRepository userRepository;
     private final ClubRepository clubRepository;
     private final ClubMemberRepository clubMemberRepository;
@@ -50,7 +53,7 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase {
     public ClubMemberSearchResponse getUserClubs(String accessToken, Pageable pageable) {
         String userName = jwtutil.getUsernameFromToken(accessToken);
         User user = userRepository.findByUsername(userName)
-                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다.0"));
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
         Page<ClubMember> clubMemberPage = clubMemberRepository.findClubMembersByUserId(user.getId(), pageable);
         List<Long> clubIds = clubMemberPage.stream()
                 .map(cm -> cm.getClub().getId())
@@ -105,7 +108,7 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase {
     public User findUserByAccessToken(String accessToken) throws UserNotFoundException{
         String userName = jwtutil.getUsernameFromToken(accessToken);
         User user = userRepository.findByUsername(userName)
-                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다. 1"));
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
         return user;
     }
 
@@ -116,7 +119,7 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase {
     public UserResponse getUserByToken(String accessToken) throws UserNotFoundException{
         String userName = jwtutil.getUsernameFromToken(accessToken);
         User user = userRepository.findByUsername(userName)
-                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다.1"));
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
         return UserResponse.builder()
                 .id(user.getId())
                 .name(user.getUsername())
@@ -145,14 +148,12 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase {
     }
     @Transactional
     @Override
-    public User updateEmail(Long id,UserEmailUpdateRequest request,String accessToken,String refreshToken) throws UserNotFoundException,CustomException {
+    public User updateEmail(Long userId,UserEmailUpdateRequest request,String accessToken,String refreshToken) throws UserNotFoundException,CustomException {
         try{
             User user = findUserByAccessToken(accessToken);
-            ClubMember clubMember = clubMemberRepository.findClubMemberByUserIdAndClubId(id,user.getId()).orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));;
-
-            User target_user = userRepository.findUserById(id)
+            User target_user = userRepository.findUserById(userId)
                     .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
-            if(Objects.equals(user.getId(), target_user.getId())||clubMember.getRole()==Role.LEADER||clubMember.getRole()==Role.VICE_LEADER){
+            if(Objects.equals(user.getId(), target_user.getId())||user.getRole()== UserRole.ADMIN){
                 User newUser = userMapper.toEntity(target_user, request);
                 return userRepository.save(newUser);
             }
@@ -179,5 +180,26 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase {
         ClubMember clubMember = userClubMemberMapper.toEntity(clubRegisterRequest,club,user,now);
         clubMemberRepository.save(clubMember);
         return ClubRegisterResponse.builder().message("가입 신청 성공").club(club).build();
+    }
+    @Transactional
+    @Override
+    public ClubLeaveResponse leaveClubMember(ClubLeaveRequest clubLeaveRequest,String accessToken,String refreshToken) throws ClubNotFoundException,UserNotFoundException {
+        User user = findUserByAccessToken(accessToken);
+        User target_user = userRepository.findUserById(clubLeaveRequest.userId()).orElseThrow(()->new UserNotFoundException("존재하지 않는 사용자입니다."));
+        Long clubId = clubLeaveRequest.clubId();
+        ClubMember clubMember = clubMemberRepository.findClubMemberByUserIdAndClubId(user.getId(),clubId).orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));;
+        ClubProjection.ClubDetail club = clubRepository.findDetailById(clubLeaveRequest.clubId()).orElseThrow(() -> new ClubNotFoundException("존재하지 않는 동아리입니다."));
+        if(clubMember.getStatus()!=MemberStatus.INACTIVE&&(Objects.equals(user.getId(), target_user.getId())||clubMember.getRole()==Role.LEADER||clubMember.getRole()==Role.VICE_LEADER)){
+            ClubMember newUser = userClubMemberMapper.leaveClub(clubMember);
+            clubMemberRepository.save(newUser);
+            return ClubLeaveResponse.builder().message("동아리 탈퇴 성공").club(club).build();
+        }
+        else if(clubMember.getStatus()==MemberStatus.INACTIVE){
+            //이미 탈퇴했는데 다시 요청한 경우
+            throw new CustomException(ErrorCode.INVALID_REQUEST);
+        }
+        else{
+            throw new CustomException(ErrorCode.UNAUTHORIZED_ACCESS);
+        }
     }
 }

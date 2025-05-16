@@ -38,4 +38,9 @@ public class ClubMember {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "club_id")
     private Club club;
+
+    public void changeStatus(MemberStatus status) {
+        this.status = status;
+    }
+
 }
