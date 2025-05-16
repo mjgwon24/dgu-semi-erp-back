@@ -8,6 +8,8 @@ import com.querydsl.core.annotations.QueryProjection;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ClubProjection {
     public record ClubSummary(
@@ -15,7 +17,7 @@ public class ClubProjection {
             String name,
             String affiliation,
             ClubStatus status,
-            ClubMemberProjection.ClubMemberSummery clubMembers
+            List<ClubMemberProjection.ClubMemberSummery> clubMembers
     ) {}
     public record ClubDetail(
             Long id,

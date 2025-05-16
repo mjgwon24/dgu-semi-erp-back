@@ -13,6 +13,9 @@ import java.time.LocalDateTime;
 public class ClubMemberProjection {
     public record ClubMemberSummery(
             Long id,
+            String name,
+            String major,
+            Integer studentNumber,
             Role role,
             MemberStatus status,
             LocalDateTime registeredAt
