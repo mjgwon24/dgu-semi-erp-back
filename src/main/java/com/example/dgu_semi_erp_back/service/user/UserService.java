@@ -7,6 +7,7 @@ import com.example.dgu_semi_erp_back.dto.club.ClubDto.ClubResponse;
 import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.*;
 import com.example.dgu_semi_erp_back.dto.common.PaginationInfo;
 import com.example.dgu_semi_erp_back.dto.user.UserCommandDto.*;
+import com.example.dgu_semi_erp_back.entity.auth.user.QUser;
 import com.example.dgu_semi_erp_back.entity.auth.user.UserRole;
 import com.example.dgu_semi_erp_back.entity.club.*;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
@@ -23,6 +24,7 @@ import com.example.dgu_semi_erp_back.repository.auth.UserRepository;
 import com.example.dgu_semi_erp_back.usecase.club.ClubMemberCreateUseCase;
 import com.example.dgu_semi_erp_back.usecase.club.ClubMemberUpdateUseCase;
 import com.example.dgu_semi_erp_back.usecase.user.UserUseCase;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.Builder;
@@ -33,10 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -71,37 +70,61 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
         }
         QClub qClub = QClub.club;
         QClubMember qMember = QClubMember.clubMember;
-
-        List<ClubSummary> clubSummeryList = queryFactory
-                .select(Projections.constructor(
-                        ClubSummary.class,
+        QUser qUser = QUser.user;
+        List<Tuple> tuples = queryFactory
+                .select(
                         qClub.id,
                         qClub.name,
                         qClub.affiliation,
                         qClub.status,
-                        Projections.constructor(
-                                ClubMemberProjection.ClubMemberSummery.class,
-                                qMember.id,
-                                qMember.role,
-                                qMember.status,
-                                qMember.registeredAt
-                        )
-                ))
+                        qMember.id,
+                        qUser.username,
+                        qUser.major,
+                        qUser.studentNumber,
+                        qMember.role,
+                        qMember.status,
+                        qMember.registeredAt
+                )
                 .from(qClub)
                 .join(qMember).on(qMember.club.id.eq(qClub.id))
-                .where(qClub.id.in(clubIds).and(qMember.user.id.eq(user.getId())))
+                .join(qUser).on(qMember.user.id.eq(qUser.id))
+                .where(qClub.id.in(clubIds))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
+
+        Map<Long, ClubProjection.ClubSummary> clubSummaryMap = new LinkedHashMap<>();
+
+        for(Tuple tuple : tuples){
+            Long clubId = tuple.get(qClub.id);
+            ClubMemberProjection.ClubMemberSummery member = new ClubMemberProjection.ClubMemberSummery(
+                    tuple.get(qMember.id),
+                    tuple.get(qUser.username),
+                    tuple.get(qUser.major),
+                    tuple.get(qUser.studentNumber),
+                    tuple.get(qMember.role),
+                    tuple.get(qMember.status),
+                    tuple.get(qMember.registeredAt)
+            );
+            clubSummaryMap.computeIfAbsent(clubId, id -> new ClubProjection.ClubSummary(
+                    tuple.get(qClub.id),
+                    tuple.get(qClub.name),
+                    tuple.get(qClub.affiliation),
+                    tuple.get(qClub.status),
+                    new ArrayList<>()
+            ));
+            clubSummaryMap.get(clubId).clubMembers().add(member);
+        }
+
         return ClubMemberSearchResponse.builder()
-                .content(clubSummeryList)
+                .content(new ArrayList<>(clubSummaryMap.values()))
                 .paginationInfo(new PaginationInfo(
                         clubMemberPage.getNumber(),
                         clubMemberPage.getSize(),
                         clubMemberPage.getTotalPages(),
                         clubMemberPage.getTotalElements()
                 ))
-            .build();
+                .build();
     }
 
     @Override
