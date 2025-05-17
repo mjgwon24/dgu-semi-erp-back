@@ -7,7 +7,7 @@ import com.example.dgu_semi_erp_back.entity.account.AccountHistory;
 import org.springframework.data.domain.Page;
 
 public interface AccountUseCase {
-    Account create(AccountCreateRequest request);
+    Account createAccount(AccountCreateRequest request, String username);
     Account getAccountByClubId(Long clubId);
     Page<AccountHistory> getPagedAccountHistories(
             Long accountId,

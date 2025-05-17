@@ -14,7 +14,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtInterceptor)
-                .addPathPatterns("/post/**"); // JWT 인가가 필요한 경로 설정
+                .addPathPatterns("/post/**")
+                .addPathPatterns("/account/protected/**") // 통장관리 API
+        ; // JWT 인가가 필요한 경로 설정
     }
 
     @Override
