@@ -27,18 +27,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class UserApi {
 
     private final UserService userService;
-    private final UserClubMemberService clubMemberService;
     private final UserUseCase userUseCase;
-
-    @GetMapping
-    public ResponseEntity<ClubMemberDetailSearchResponse> getClubMembers(
-            @RequestParam(required = true) Long clubId,
-            @RequestParam(required = true) String status,
-            @PageableDefault(size = 5) Pageable pageable
-    ) {
-        var response = clubMemberService.getClubMembers(clubId, status, pageable);
-        return ResponseEntity.ok(response);
-    }
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getUser(

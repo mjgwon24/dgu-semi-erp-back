@@ -5,6 +5,7 @@ import com.example.dgu_semi_erp_back.dto.user.UserCommandDto.*;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
 import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
+import com.example.dgu_semi_erp_back.service.peoplemanagement.UserClubMemberService;
 import com.example.dgu_semi_erp_back.service.user.UserService;
 import com.example.dgu_semi_erp_back.usecase.user.UserUseCase;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,17 @@ public class ClubApi {
 
     private final UserService userService;
     private final UserUseCase userUseCase;
+    private final UserClubMemberService clubMemberService;
+
+    @GetMapping("/member")
+    public ResponseEntity<ClubMemberDetailSearchResponse> getClubMembers(
+            @RequestParam(required = true) Long clubId,
+            String status,
+            @PageableDefault(size = 5) Pageable pageable
+    ) {
+        var response = clubMemberService.getClubMembers(clubId, status, pageable);
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping
     public ResponseEntity<ClubMemberSearchResponse> getClubs(
