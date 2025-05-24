@@ -33,6 +33,7 @@ public interface AccountMapper {
     AccountCreateResponse toAccountCreateResponse(Account account);
 
     @Mapping(source = "id", target = "userId")
+    @Mapping(source = "username", target = "userName")
     @Mapping(source = "email", target = "userEmail")
     AccountCreateResponse.UserInfo toUserInfo(User user);
 
