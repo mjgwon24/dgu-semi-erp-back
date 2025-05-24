@@ -1,5 +1,7 @@
 package com.example.dgu_semi_erp_back.service.account;
 
+import com.example.dgu_semi_erp_back.common.exception.CustomException;
+import com.example.dgu_semi_erp_back.common.exception.ErrorCode;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateRequest;
 import com.example.dgu_semi_erp_back.entity.account.Account;
 import com.example.dgu_semi_erp_back.entity.account.AccountHistory;
@@ -7,11 +9,12 @@ import com.example.dgu_semi_erp_back.entity.account.QAccount;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
 import com.example.dgu_semi_erp_back.entity.club.Club;
 import com.example.dgu_semi_erp_back.entity.club.ClubMember;
+import com.example.dgu_semi_erp_back.entity.club.MemberStatus;
 import com.example.dgu_semi_erp_back.entity.club.Role;
 import com.example.dgu_semi_erp_back.exception.AccountNotFoundException;
 import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
-import com.example.dgu_semi_erp_back.mapper.AccountDtoMapper;
+import com.example.dgu_semi_erp_back.mapper.AccountMapper;
 import com.example.dgu_semi_erp_back.repository.account.AccountCommandRepository;
 import com.example.dgu_semi_erp_back.repository.account.AccountHistoryQueryRepository;
 import com.example.dgu_semi_erp_back.repository.account.AccountQueryRepository;
@@ -33,7 +36,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -45,30 +47,65 @@ public class AccountCommandService implements AccountUseCase {
     private final UserRepository userRepository;
     private final ClubRepository clubRepository;
     private final EntityManager entityManager;
-    private final AccountDtoMapper mapper;
+    private final AccountMapper accountMapper;
     private final ClubMemberRepository clubMemberRepository;
     private final NotificationService notificationService;
 
     @Override
-    public Account create(AccountCreateRequest request) {
+    public Account createAccount(AccountCreateRequest request, String username) {
+        if (username == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED_ACCESS);
+        }
+
         Instant now = Instant.now();
 
+        // 동아리 존재 여부 검증
         Club club = clubRepository.findById(request.clubId())
                 .orElseThrow(() -> new ClubNotFoundException("해당 동아리가 존재하지 않습니다."));
 
-        User user = userRepository.findById(request.userId())
+        // 통장 소유자 존재 여부 검증
+        User owner = userRepository.findById(request.userId())
                 .orElseThrow(() -> new UserNotFoundException("해당 사용자가 존재하지 않습니다."));
 
-        Account account = mapper.toEntity(request, user, club, now);
+        // API 요청자 존재 여부 검증
+        User requester = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("요청 사용자가 존재하지 않습니다."));
 
+        // 요청자 권한 검증
+        ClubMember requesterMember = clubMemberRepository.findByClubIdAndUserId(club.getId(), requester.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED_REQUEST));
+        if (requesterMember.getStatus() != MemberStatus.ACTIVE) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED_MEMBER);
+        }
+
+        // 요청자가 MEMBER보다 높은 권한인지 검증 (TREASURER 이상)
+        if (requesterMember.getRole().getPriority() <= Role.MEMBER.getPriority()) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED_REQUEST);
+        }
+
+        // 통장 소유자 권한 검증
+        ClubMember ownerMember = clubMemberRepository.findByClubIdAndUserId(club.getId(), owner.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED_CLUB_MEMBER));
+
+        // 소유자의 Role이 VICE_LEADER(3) 이상인지 검증
+        if (ownerMember.getRole().getPriority() <= Role.TREASURER.getPriority()) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED_USER);
+        }
+
+        // 통장 생성
+        Account account = accountMapper.toEntity(request, owner, club, now);
         Account savedAccount = accountCommandRepository.save(account);
 
-        notificationService.send(
-            user,
-            Category.BANKBOOK,
-            "통장이 생성되었습니다",
-            club.getName() + " 동아리의 통장이 생성되었습니다."
-        );
+        try {
+            notificationService.send(
+                    owner,
+                    Category.BANKBOOK,
+                    "통장이 추가되었습니다",
+                    club.getName() + " 동아리의 통장이 추가되었습니다.\n계좌번호: " + savedAccount.getNumber()
+            );
+        } catch (Exception e) {
+            log.error("알림 전송 실패", e);
+        }
 
         return savedAccount;
     }
