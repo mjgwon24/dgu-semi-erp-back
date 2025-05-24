@@ -53,24 +53,49 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
         String userName = jwtutil.getUsernameFromToken(accessToken);
         User user = userRepository.findByUsername(userName)
                 .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
-        Page<ClubMember> clubMemberPage = clubMemberRepository.findClubMembersByUserId(user.getId(), pageable);
-        List<Long> clubIds = clubMemberPage.stream()
+
+        List<Long> userClubIds = clubMemberRepository.findClubIdsByUserId(user.getId()).stream()
                 .map(cm -> cm.getClub().getId())
                 .collect(Collectors.toList());
-        if (clubIds.isEmpty()) {
+
+        if (userClubIds.isEmpty()) {
             return ClubMemberSearchResponse.builder()
-                    .content(null)
+                    .content(new ArrayList<>())
                     .paginationInfo(new PaginationInfo(
-                            clubMemberPage.getNumber(),
-                            clubMemberPage.getSize(),
-                            clubMemberPage.getTotalPages(),
-                            clubMemberPage.getTotalElements()
+                            pageable.getPageNumber(),
+                            pageable.getPageSize(),
+                            0,
+                            0
                     ))
                     .build();
         }
+
         QClub qClub = QClub.club;
+
+        List<Long> pagedClubIds = queryFactory
+                .select(qClub.id)
+                .from(qClub)
+                .where(qClub.id.in(userClubIds))
+                .orderBy(qClub.id.asc()) // 정렬 기준 명시
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        if (pagedClubIds.isEmpty()) {
+            return ClubMemberSearchResponse.builder()
+                    .content(new ArrayList<>())
+                    .paginationInfo(new PaginationInfo(
+                            pageable.getPageNumber(),
+                            pageable.getPageSize(),
+                            0,
+                            0
+                    ))
+                    .build();
+        }
+
         QClubMember qMember = QClubMember.clubMember;
         QUser qUser = QUser.user;
+
         List<Tuple> tuples = queryFactory
                 .select(
                         qClub.id,
@@ -88,14 +113,13 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
                 .from(qClub)
                 .join(qMember).on(qMember.club.id.eq(qClub.id))
                 .join(qUser).on(qMember.user.id.eq(qUser.id))
-                .where(qClub.id.in(clubIds))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .where(qClub.id.in(pagedClubIds))
+                .orderBy(qClub.id.asc())
                 .fetch();
 
         Map<Long, ClubProjection.ClubSummary> clubSummaryMap = new LinkedHashMap<>();
 
-        for(Tuple tuple : tuples){
+        for (Tuple tuple : tuples) {
             Long clubId = tuple.get(qClub.id);
             ClubMemberProjection.ClubMemberSummery member = new ClubMemberProjection.ClubMemberSummery(
                     tuple.get(qMember.id),
@@ -116,13 +140,16 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
             clubSummaryMap.get(clubId).clubMembers().add(member);
         }
 
+        int totalClubs = userClubIds.size();
+        int totalPages = (int) Math.ceil((double) totalClubs / pageable.getPageSize());
+
         return ClubMemberSearchResponse.builder()
                 .content(new ArrayList<>(clubSummaryMap.values()))
                 .paginationInfo(new PaginationInfo(
-                        clubMemberPage.getNumber(),
-                        clubMemberPage.getSize(),
-                        clubMemberPage.getTotalPages(),
-                        clubMemberPage.getTotalElements()
+                        pageable.getPageNumber(),
+                        pageable.getPageSize(),
+                        totalPages,
+                        totalClubs
                 ))
                 .build();
     }

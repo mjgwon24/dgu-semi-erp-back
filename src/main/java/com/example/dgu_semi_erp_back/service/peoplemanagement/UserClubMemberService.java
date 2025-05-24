@@ -33,31 +33,60 @@ public class UserClubMemberService {
 
     public UserClubMemberDto.ClubMemberDetailSearchResponse getClubMembers(Long clubId, String status, Pageable pageable) {
         ClubProjection.ClubDetail club = clubRepository.findDetailById(clubId).orElseThrow(()-> new ClubNotFoundException("해당 동아리가 존재하지 않습니다."));
-        Page<ClubMember> clubmemberPage = queryRepository.findClubMembersByClubIdAndStatus(clubId, MemberStatus.valueOf(status), pageable);
+        Page<ClubMember> clubmemberPage;
+        if(status!=null) {
+            clubmemberPage = queryRepository.findClubMembersByClubIdAndStatus(clubId, MemberStatus.valueOf(status), pageable);
+        }
+        else{
+            clubmemberPage = queryRepository.findClubMembersByClubId(clubId, pageable);
+        }
         QClub qClub = QClub.club;
         QClubMember qMember = QClubMember.clubMember;
         QUser qUser = QUser.user;
-
-        List<ClubMemberDetail> clubMemberDetails = queryFactory
-                .select(Projections.constructor(
-                        ClubMemberDetail.class,
-                        qUser.username,
-                        qUser.major,
-                        qUser.studentNumber,
-                        qMember.role,
-                        qMember.registeredAt,
-                        qMember.status
-                ))
-                .from(qMember)
-                .join(qUser).on(qMember.user.id.eq(qUser.id))
-                .join(qClub).on(qMember.club.id.eq(qClub.id))
-                .where(
-                        qMember.club.id.eq(clubId)
-                        .and(qMember.status.eq(MemberStatus.valueOf(status)))
-                )
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
+        List<ClubMemberDetail> clubMemberDetails;
+        if(status!=null) {
+            clubMemberDetails = queryFactory
+                    .select(Projections.constructor(
+                            ClubMemberDetail.class,
+                            qUser.username,
+                            qUser.major,
+                            qUser.studentNumber,
+                            qMember.role,
+                            qMember.registeredAt,
+                            qMember.status
+                    ))
+                    .from(qMember)
+                    .join(qUser).on(qMember.user.id.eq(qUser.id))
+                    .join(qClub).on(qMember.club.id.eq(qClub.id))
+                    .where(
+                            qMember.club.id.eq(clubId)
+                                    .and(qMember.status.eq(MemberStatus.valueOf(status)))
+                    )
+                    .offset(pageable.getOffset())
+                    .limit(pageable.getPageSize())
+                    .fetch();
+        }
+        else{
+            clubMemberDetails = queryFactory
+                    .select(Projections.constructor(
+                            ClubMemberDetail.class,
+                            qUser.username,
+                            qUser.major,
+                            qUser.studentNumber,
+                            qMember.role,
+                            qMember.registeredAt,
+                            qMember.status
+                    ))
+                    .from(qMember)
+                    .join(qUser).on(qMember.user.id.eq(qUser.id))
+                    .join(qClub).on(qMember.club.id.eq(qClub.id))
+                    .where(
+                            qMember.club.id.eq(clubId)
+                    )
+                    .offset(pageable.getOffset())
+                    .limit(pageable.getPageSize())
+                    .fetch();
+        }
 
         return UserClubMemberDto.ClubMemberDetailSearchResponse.builder()
                 .club(club)
