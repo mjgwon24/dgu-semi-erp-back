@@ -14,7 +14,7 @@ import com.example.dgu_semi_erp_back.entity.club.Role;
 import com.example.dgu_semi_erp_back.exception.AccountNotFoundException;
 import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
-import com.example.dgu_semi_erp_back.mapper.AccountDtoMapper;
+import com.example.dgu_semi_erp_back.mapper.AccountMapper;
 import com.example.dgu_semi_erp_back.repository.account.AccountCommandRepository;
 import com.example.dgu_semi_erp_back.repository.account.AccountHistoryQueryRepository;
 import com.example.dgu_semi_erp_back.repository.account.AccountQueryRepository;
@@ -36,7 +36,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -48,7 +47,7 @@ public class AccountCommandService implements AccountUseCase {
     private final UserRepository userRepository;
     private final ClubRepository clubRepository;
     private final EntityManager entityManager;
-    private final AccountDtoMapper mapper;
+    private final AccountMapper accountMapper;
     private final ClubMemberRepository clubMemberRepository;
     private final NotificationService notificationService;
 
@@ -94,7 +93,7 @@ public class AccountCommandService implements AccountUseCase {
         }
 
         // 통장 생성
-        Account account = mapper.toEntity(request, owner, club, now);
+        Account account = accountMapper.toEntity(request, owner, club, now);
         Account savedAccount = accountCommandRepository.save(account);
 
         try {

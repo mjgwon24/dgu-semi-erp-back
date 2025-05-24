@@ -10,6 +10,7 @@ import com.example.dgu_semi_erp_back.dto.common.PaginationInfo;
 import com.example.dgu_semi_erp_back.exception.AccountNotFoundException;
 import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
+import com.example.dgu_semi_erp_back.mapper.AccountMapper;
 import com.example.dgu_semi_erp_back.service.notification.NotificationService;
 import com.example.dgu_semi_erp_back.usecase.account.AccountUseCase;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,6 +34,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Validated
 public class AccountApi {
     private final AccountUseCase accountUseCase;
+    private final AccountMapper accountMapper;
     private final NotificationService notificationService;
 
     /**
@@ -50,26 +52,7 @@ public class AccountApi {
 
         var account = accountUseCase.createAccount(request, username);
 
-        return AccountCreateResponse.builder()
-                .accountId(account.getId())
-                .accountNumber(account.getNumber())
-                .createdAt(account.getCreatedAt())
-                .updatedAt(account.getUpdatedAt())
-                .user(AccountCreateResponse.UserInfo.builder()
-                        .userId(account.getUser().getId())
-                        .userName(account.getUser().getUsername())
-                        .userEmail(account.getUser().getEmail())
-                        .nickname(account.getUser().getNickname())
-                        .major(account.getUser().getMajor())
-                        .studentNumber(account.getUser().getStudentNumber())
-                        .role(account.getUser().getRole())
-                        .build())
-                .club(AccountCreateResponse.ClubInfo.builder()
-                        .clubId(account.getClub().getId())
-                        .clubName(account.getClub().getName())
-                        .affiliation(account.getClub().getAffiliation())
-                        .build())
-                .build();
+        return accountMapper.toAccountCreateResponse(account);
     }
 
     /**
