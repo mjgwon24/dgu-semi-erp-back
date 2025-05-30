@@ -8,6 +8,7 @@ import java.util.List;
 public final class AnnouncementQueryDto {
     private AnnouncementQueryDto() {}
 
+    // 목록 조회
     @Builder
     public record AnnouncementSummariesListResponse(
             List<AnnouncementSummaryResponse> content,
