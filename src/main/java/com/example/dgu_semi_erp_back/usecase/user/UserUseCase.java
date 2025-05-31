@@ -14,9 +14,8 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface UserUseCase {
-    User updateRole(Long id,UserRoleUpdateRequest request,String accessToken,String refreshToken);
-    User updateEmail(Long userId, UserEmailUpdateRequest request, String accessToken, String refreshToken);
+    User updateRole(Long id,UserRoleUpdateRequest request,String username);
+    User updateEmail(Long userId, UserEmailUpdateRequest request,String username);
     User findUserByAccessToken(String accessToken);
-    UserResponse getUserByToken(String accessToken);
     UserClubMemberDto.ClubMemberSearchResponse getUserClubs(String accessToken, Pageable pageable);
 }

@@ -1,5 +1,6 @@
 package com.example.dgu_semi_erp_back.repository.auth;
 
+import com.example.dgu_semi_erp_back.dto.user.UserCommandDto.UserResponse;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 

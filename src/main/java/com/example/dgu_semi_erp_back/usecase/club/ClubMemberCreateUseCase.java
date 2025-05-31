@@ -6,5 +6,5 @@ import com.example.dgu_semi_erp_back.entity.auth.user.User;
 import com.example.dgu_semi_erp_back.entity.club.ClubMember;
 
 public interface ClubMemberCreateUseCase {
-    ClubRegisterResponse createClubMember(ClubRegisterRequest clubRegisterRequest,String accessToken,String refreshToken);
+    ClubRegisterResponse createClubMember(ClubRegisterRequest clubRegisterRequest,String username);
 }

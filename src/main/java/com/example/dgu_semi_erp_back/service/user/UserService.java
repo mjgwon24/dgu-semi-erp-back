@@ -49,9 +49,8 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
     private final JwtUtil jwtutil;
     private final JPAQueryFactory queryFactory;
     @Override
-    public ClubMemberSearchResponse getUserClubs(String accessToken, Pageable pageable) {
-        String userName = jwtutil.getUsernameFromToken(accessToken);
-        User user = userRepository.findByUsername(userName)
+    public ClubMemberSearchResponse getUserClubs(String username, Pageable pageable) {
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
 
         List<Long> userClubIds = clubMemberRepository.findClubIdsByUserId(user.getId()).stream()
@@ -153,6 +152,15 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
                 ))
                 .build();
     }
+    public User getUser(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
+        return user;
+    }
+    public UserResponse getUserInfo(String username) {
+        User user = getUser(username);
+        return UserResponse.builder().id(user.getId()).email(user.getEmail()).name(user.getUsername()).build();
+    }
 
     @Override
     public User findUserByAccessToken(String accessToken) throws UserNotFoundException{
@@ -163,26 +171,10 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
     }
 
 
-
-
-    @Override
-    public UserResponse getUserByToken(String accessToken) throws UserNotFoundException{
-        String userName = jwtutil.getUsernameFromToken(accessToken);
-        User user = userRepository.findByUsername(userName)
-                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
-        return UserResponse.builder()
-                .id(user.getId())
-                .name(user.getUsername())
-                .email(user.getEmail())
-                .build();
-
-    }
-
-
     @Transactional
     @Override
-    public User updateRole(Long id, UserRoleUpdateRequest request,String accessToken,String refreshToken) throws UserNotFoundException,CustomException {
-        User user = findUserByAccessToken(accessToken);
+    public User updateRole(Long id, UserRoleUpdateRequest request,String username) throws UserNotFoundException,CustomException {
+        User user = getUser(username);
         Club club = clubRepository.findClubIdById(request.clubId()).orElseThrow(() -> new UserNotFoundException("존재하지 않는 동아리입니다."));
         Role userRole = clubMemberRepository.findClubMemberByUserIdAndClubId(user.getId(),request.clubId()).orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다.")).getRole();
         if(userRole==Role.LEADER||userRole==Role.VICE_LEADER|| Objects.equals(user.getId(), id)){
@@ -198,9 +190,9 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
     }
     @Transactional
     @Override
-    public User updateEmail(Long userId,UserEmailUpdateRequest request,String accessToken,String refreshToken) throws UserNotFoundException,CustomException {
+    public User updateEmail(Long userId,UserEmailUpdateRequest request,String username) throws UserNotFoundException,CustomException {
         try{
-            User user = findUserByAccessToken(accessToken);
+            User user = getUser(username);
             User target_user = userRepository.findUserById(userId)
                     .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
             if(Objects.equals(user.getId(), target_user.getId())||user.getRole()== UserRole.ADMIN){
@@ -218,8 +210,8 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
     }
     @Transactional
     @Override
-    public ClubRegisterResponse createClubMember(ClubRegisterRequest clubRegisterRequest,String accessToken,String refreshToken) throws ClubNotFoundException,UserNotFoundException {
-        User user = findUserByAccessToken(accessToken);
+    public ClubRegisterResponse createClubMember(ClubRegisterRequest clubRegisterRequest,String username) throws ClubNotFoundException,UserNotFoundException {
+        User user = getUser(username);
         Club club = clubRepository.findClubIdById(clubRegisterRequest.clubId()).orElseThrow(() -> new ClubNotFoundException("존재하지 않는 동아리입니다."));
         if(clubMemberRepository.existsClubMemberByUserIdAndClubId(user.getId(), club.getId())){
             throw new CustomException(ErrorCode.DUPLICATED_MEMBER);
@@ -233,8 +225,8 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
     }
     @Transactional
     @Override
-    public ClubLeaveResponse leaveClubMember(ClubLeaveRequest clubLeaveRequest,String accessToken,String refreshToken) throws ClubNotFoundException,UserNotFoundException {
-        User user = findUserByAccessToken(accessToken);
+    public ClubLeaveResponse leaveClubMember(ClubLeaveRequest clubLeaveRequest,String username) throws ClubNotFoundException,UserNotFoundException {
+        User user = getUser(username);
         User target_user = userRepository.findUserById(clubLeaveRequest.userId()).orElseThrow(()->new UserNotFoundException("존재하지 않는 사용자입니다."));
         Long clubId = clubLeaveRequest.clubId();
         ClubMember clubMember = clubMemberRepository.findClubMemberByUserIdAndClubId(user.getId(),clubId).orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));;

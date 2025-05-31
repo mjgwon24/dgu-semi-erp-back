@@ -12,6 +12,7 @@ import com.example.dgu_semi_erp_back.service.user.UserService;
 import com.example.dgu_semi_erp_back.usecase.club.ClubMemberCreateUseCase;
 import com.example.dgu_semi_erp_back.usecase.club.ClubMemberUpdateUseCase;
 import com.example.dgu_semi_erp_back.usecase.user.UserUseCase;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,37 +32,37 @@ public class UserApi {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getUser(
-            @CookieValue(name = "accessToken", required = true) String accessToken,
-            @CookieValue(name = "refreshToken", required = true) String refreshToken
+            HttpServletRequest request
     ){
-        var user = userService.getUserByToken(accessToken);
+        String username = (String) request.getAttribute("username");
+        var user = userService.getUserInfo(username);
         return ResponseEntity.ok(user);
     }
     @GetMapping("/me/club")
     public ResponseEntity<ClubMemberSearchResponse> getClubs(
-            @CookieValue(name = "accessToken", required = true) String accessToken,
-            @CookieValue(name = "refreshToken", required = true) String refreshToken,
-            @PageableDefault(size = 5) Pageable pageable
+            @PageableDefault(size = 5) Pageable pageable,
+            HttpServletRequest request
     ){
-        var response = userService.getUserClubs(accessToken,pageable);
+        String username = (String) request.getAttribute("username");
+        var response = userService.getUserClubs(username,pageable);
         return ResponseEntity.ok(response);
     }
     @PostMapping("/me/club")
     public ResponseEntity<ClubRegisterResponse> registerClub(
             @RequestBody ClubRegisterRequest clubRegisterDto,
-            @CookieValue(name = "accessToken", required = true) String accessToken,
-            @CookieValue(name = "refreshToken", required = true) String refreshToken
+            HttpServletRequest request
     ){
-        var response = userService.createClubMember(clubRegisterDto,accessToken,refreshToken);
+        String username = (String) request.getAttribute("username");
+        var response = userService.createClubMember(clubRegisterDto,username);
         return ResponseEntity.ok(response);
     }
     @DeleteMapping("/me/club")
     public ResponseEntity<ClubLeaveResponse> leaveClub(
             @RequestBody ClubLeaveRequest clubLeaveDto,
-            @CookieValue(name = "accessToken", required = true) String accessToken,
-            @CookieValue(name = "refreshToken", required = true) String refreshToken
+            HttpServletRequest request
     ){
-        var response = userService.leaveClubMember(clubLeaveDto,accessToken,refreshToken);
+        String username = (String) request.getAttribute("username");
+        var response = userService.leaveClubMember(clubLeaveDto,username);
         return ResponseEntity.ok(response);
     }
 
@@ -69,20 +70,20 @@ public class UserApi {
     public ResponseEntity<UserRoleUpdateResponse> changeUserRole(
             @PathVariable Long id,
             @RequestBody UserRoleUpdateRequest request,
-            @CookieValue(name = "accessToken", required = true) String accessToken,
-            @CookieValue(name = "refreshToken", required = true) String refreshToken
+            HttpServletRequest req
     ){
-        userUseCase.updateRole(id,request,accessToken,refreshToken);
+        String username = (String) req.getAttribute("username");
+        userUseCase.updateRole(id,request,username);
         return ResponseEntity.ok(UserRoleUpdateResponse.builder().message("수정 완료").role(request.role()).build());
     }
     @PatchMapping("/{id}/email")
     public ResponseEntity<UserEmailUpdateResponse> changeUserEmail(
             @PathVariable Long id,
             @RequestBody UserEmailUpdateRequest request,
-            @CookieValue(name = "accessToken", required = true) String accessToken,
-            @CookieValue(name = "refreshToken", required = true) String refreshToken
+            HttpServletRequest req
     ){
-        userUseCase.updateEmail(id,request,accessToken,refreshToken);
+        String username = (String) req.getAttribute("username");
+        userUseCase.updateEmail(id,request,username);
         return ResponseEntity.ok(UserEmailUpdateResponse.builder().message("수정 완료").email(request.email()).build());
     }
 
