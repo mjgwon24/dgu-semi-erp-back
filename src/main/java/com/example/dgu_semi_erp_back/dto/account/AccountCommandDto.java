@@ -3,10 +3,12 @@ package com.example.dgu_semi_erp_back.dto.account;
 import com.example.dgu_semi_erp_back.dto.common.PaginationInfo;
 import com.example.dgu_semi_erp_back.entity.account.Account;
 import com.example.dgu_semi_erp_back.dto.account.AccountHistoryCommandDto.AccountHistoryDetailResponse;
+import com.example.dgu_semi_erp_back.entity.auth.user.UserRole;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public final class AccountCommandDto {
@@ -22,8 +24,31 @@ public final class AccountCommandDto {
 
     @Builder
     public record AccountCreateResponse(
-            Account account
-    ) {}
+            Long accountId,
+            String accountNumber,
+            Instant createdAt,
+            Instant updatedAt,
+            UserInfo user,
+            ClubInfo club
+    ) {
+        @Builder
+        public record UserInfo(
+                Long userId,
+                String userName,
+                String userEmail,
+                String nickname,
+                String major,
+                int studentNumber,
+                UserRole role
+        ) {}
+
+        @Builder
+        public record ClubInfo(
+                Long clubId,
+                String clubName,
+                String affiliation
+        ) {}
+    }
 
     @Builder
     public record AccountUpdateRequest(
