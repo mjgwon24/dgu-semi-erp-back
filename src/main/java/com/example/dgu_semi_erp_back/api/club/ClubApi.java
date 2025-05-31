@@ -26,7 +26,7 @@ public class ClubApi {
     @GetMapping("/member")
     public ResponseEntity<ClubMemberDetailSearchResponse> getClubMembers(
             @RequestParam(required = true) Long clubId,
-            String status,
+            @RequestParam(required = false) String status,
             @PageableDefault(size = 5) Pageable pageable
     ) {
         var response = clubMemberService.getClubMembers(clubId, status, pageable);
