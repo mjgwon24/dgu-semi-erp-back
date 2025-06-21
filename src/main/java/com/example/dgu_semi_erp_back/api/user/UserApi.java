@@ -1,4 +1,5 @@
 package com.example.dgu_semi_erp_back.api.user;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.*;
 import com.example.dgu_semi_erp_back.dto.user.UserCommandDto.*;
@@ -42,61 +43,89 @@ public class UserApi {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getUser(
-            @CookieValue(name = "accessToken", required = true) String accessToken,
-            @CookieValue(name = "refreshToken", required = true) String refreshToken
-    ){
+            @RequestHeader(name = "Authorization", required = false) String authorizationHeader
+    ) {
+        String accessToken = extractAccessToken(authorizationHeader);
         var user = userService.getUserByToken(accessToken);
         return ResponseEntity.ok(user);
     }
     @GetMapping("/me/club")
     public ResponseEntity<ClubMemberSearchResponse> getClubs(
-            @CookieValue(name = "accessToken", required = true) String accessToken,
-            @CookieValue(name = "refreshToken", required = true) String refreshToken,
+            HttpServletRequest request,
             @PageableDefault(size = 5) Pageable pageable
     ){
-        var response = userService.getUserClubs(accessToken,pageable);
+        String accessToken = extractAccessToken(request);
+        String refreshToken = extractRefreshToken(request);
+        var response = userService.getUserClubs(accessToken, pageable);
         return ResponseEntity.ok(response);
     }
     @PostMapping("/me/club")
     public ResponseEntity<ClubRegisterResponse> registerClub(
             @RequestBody ClubRegisterRequest clubRegisterDto,
-            @CookieValue(name = "accessToken", required = true) String accessToken,
-            @CookieValue(name = "refreshToken", required = true) String refreshToken
-    ){
-        var response = userService.createClubMember(clubRegisterDto,accessToken,refreshToken);
+            HttpServletRequest request
+    ) {
+        String accessToken = extractAccessToken(request);
+        String refreshToken = extractRefreshToken(request);
+        var response = userService.createClubMember(clubRegisterDto, accessToken, refreshToken);
         return ResponseEntity.ok(response);
     }
     @DeleteMapping("/me/club")
     public ResponseEntity<ClubLeaveResponse> leaveClub(
             @RequestBody ClubLeaveRequest clubLeaveDto,
-            @CookieValue(name = "accessToken", required = true) String accessToken,
-            @CookieValue(name = "refreshToken", required = true) String refreshToken
+            HttpServletRequest request
     ){
-        var response = userService.leaveClubMember(clubLeaveDto,accessToken,refreshToken);
+        String accessToken = extractAccessToken(request);
+        String refreshToken = extractRefreshToken(request);
+        var response = userService.leaveClubMember(clubLeaveDto, accessToken, refreshToken);
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{id}/role")
     public ResponseEntity<UserRoleUpdateResponse> changeUserRole(
             @PathVariable Long id,
-            @RequestBody UserRoleUpdateRequest request,
-            @CookieValue(name = "accessToken", required = true) String accessToken,
-            @CookieValue(name = "refreshToken", required = true) String refreshToken
+            @RequestBody UserRoleUpdateRequest userRoleUpdateRequest,
+            HttpServletRequest request
     ){
-        userUseCase.updateRole(id,request,accessToken,refreshToken);
-        return ResponseEntity.ok(UserRoleUpdateResponse.builder().message("수정 완료").role(request.role()).build());
+        String accessToken = extractAccessToken(request);
+        String refreshToken = extractRefreshToken(request);
+        userUseCase.updateRole(id, userRoleUpdateRequest, accessToken, refreshToken);
+        return ResponseEntity.ok(UserRoleUpdateResponse.builder().message("수정 완료").role(userRoleUpdateRequest.role()).build());
     }
+    @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
     @PatchMapping("/{id}/email")
     public ResponseEntity<UserEmailUpdateResponse> changeUserEmail(
             @PathVariable Long id,
-            @RequestBody UserEmailUpdateRequest request,
-            @CookieValue(name = "accessToken", required = true) String accessToken,
-            @CookieValue(name = "refreshToken", required = true) String refreshToken
+            @RequestBody UserEmailUpdateRequest userEmailUpdateRequest,
+            HttpServletRequest request
     ){
-        userUseCase.updateEmail(id,request,accessToken,refreshToken);
-        return ResponseEntity.ok(UserEmailUpdateResponse.builder().message("수정 완료").email(request.email()).build());
+        String accessToken = extractAccessToken(request);
+        String refreshToken = extractRefreshToken(request);
+        userUseCase.updateEmail(id, userEmailUpdateRequest, accessToken, refreshToken);
+        return ResponseEntity.ok(UserEmailUpdateResponse.builder().message("수정 완료").email(userEmailUpdateRequest.email()).build());
     }
 
 
 
+    private String extractAccessToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        return extractAccessToken(authHeader);
+    }
+
+    private String extractAccessToken(String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        throw new RuntimeException("access_token이 Authorization 헤더에 없습니다.");
+    }
+
+    private String extractRefreshToken(HttpServletRequest request) {
+        if (request.getCookies() != null) {
+            for (var cookie : request.getCookies()) {
+                if ("refresh_token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        throw new RuntimeException("refresh_token 쿠키가 없습니다.");
+    }
 }

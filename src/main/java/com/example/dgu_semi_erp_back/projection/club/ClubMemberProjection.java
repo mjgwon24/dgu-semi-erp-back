@@ -12,12 +12,13 @@ import java.time.LocalDateTime;
 
 public class ClubMemberProjection {
     public record ClubMemberSummery(
-            Long id,
-            String name,
-            String major,
-            Integer studentNumber,
-            Role role,
-            MemberStatus status,
-            LocalDateTime registeredAt
+            Long userId,         // qUser.id
+            Long id,             // qMember.id
+            String name,         // qUser.username
+            String major,        // qUser.major
+            Integer studentNumber, // qUser.studentNumber
+            Role role,           // qMember.role
+            MemberStatus status, // qMember.status
+            LocalDateTime registeredAt // qMember.registeredAt
     ) {}
 }

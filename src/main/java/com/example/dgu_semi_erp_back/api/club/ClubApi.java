@@ -5,6 +5,7 @@ import com.example.dgu_semi_erp_back.dto.user.UserCommandDto.*;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
 import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
+import com.example.dgu_semi_erp_back.projection.club.ClubProjection.ClubSummary;
 import com.example.dgu_semi_erp_back.service.user.UserService;
 import com.example.dgu_semi_erp_back.usecase.user.UserUseCase;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/club")
@@ -30,6 +33,7 @@ public class ClubApi {
         var response = userService.getUserClubs(accessToken,pageable);
         return ResponseEntity.ok(response);
     }
+
     @PostMapping
     public ResponseEntity<ClubRegisterResponse> registerClub(
             @RequestBody ClubRegisterRequest clubRegisterDto,
@@ -39,6 +43,7 @@ public class ClubApi {
         var response = userService.createClubMember(clubRegisterDto,accessToken,refreshToken);
         return ResponseEntity.ok(response);
     }
+
     @DeleteMapping
     public ResponseEntity<ClubLeaveResponse> leaveClub(
             @RequestBody ClubLeaveRequest clubLeaveDto,
@@ -60,6 +65,9 @@ public class ClubApi {
         return ResponseEntity.ok(UserRoleUpdateResponse.builder().message("수정 완료").role(request.role()).build());
     }
 
-
-
+    @GetMapping("/all")
+    public ResponseEntity<List<ClubSummary>> getAllClubs() {
+        var clubs = userService.getAllActiveClubs();
+        return ResponseEntity.ok(clubs);
+    }
 }
