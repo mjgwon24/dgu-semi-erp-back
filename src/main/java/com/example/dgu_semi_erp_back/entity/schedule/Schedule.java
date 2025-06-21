@@ -13,14 +13,16 @@ import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-
 public class Schedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,19 +42,25 @@ public class Schedule {
     @Column(name = "date", nullable = false)
     private LocalDateTime date;
 
-    @Column(name = "place", nullable = false)
+    @Column(name = "place", nullable = true)
     private String place;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "schedule_repeat", nullable = true)
     private ScheduleRepeat repeat;
 
-    public void update(String title, LocalDateTime date, String place, ScheduleRepeat repeat) {
+    @Column(name = "repeat_end", nullable = true)
+    private LocalDate repeatEnd;
+
+    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ScheduleExcluded> excludedDates = new ArrayList<>();
+
+    // update 메서드 수정
+    public void update(String title, LocalDateTime date, String place, ScheduleRepeat repeat, LocalDate repeatEnd) {
         this.title = title;
         this.date = date;
         this.place = place;
         this.repeat = repeat;
+        this.repeatEnd = repeatEnd;
     }
-
-
 }

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum ScheduleRepeat {
+    NONE("반복 없음"),
     DAILY("매일"),
     WEEKLY("매주"),
     MONTHLY("매월");

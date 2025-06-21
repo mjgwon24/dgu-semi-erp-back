@@ -118,4 +118,17 @@ public class ScheduleApi {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }
+
+    @PostMapping("/{schedule_id}/exclude")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<MessageResponse> ScheduleExcludedResponse(
+            @PathVariable("schedule_id") Long scheduleId,
+            @RequestBody @Valid ScheduleExcludedRequest request
+    ) {
+        scheduleDeleteUseCase.addExcludedDates(scheduleId, request.excludedDate());
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new MessageResponse("제외일이 등록되었습니다."));
+    }
+
 }

@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class ScheduleCommandDto {
@@ -20,7 +21,10 @@ public class ScheduleCommandDto {
             String title,
             LocalDateTime date,
             String place,
-            ScheduleRepeat repeat
+            ScheduleRepeat repeat,
+
+            @JsonProperty("repeat_end")
+            LocalDate repeatEnd
     ){}
 
     @Builder
@@ -31,7 +35,8 @@ public class ScheduleCommandDto {
             String title,
             LocalDateTime date,
             String place,
-            ScheduleRepeat repeat
+            ScheduleRepeat repeat,
+            LocalDate repeatEnd
     ){}
 
     @Builder
@@ -39,7 +44,9 @@ public class ScheduleCommandDto {
             String title,
             LocalDateTime date,
             String place,
-            ScheduleRepeat repeat
+            ScheduleRepeat repeat,
+            @JsonProperty("repeat_end")
+            LocalDate repeatEnd
     ){}
 
     @Builder
@@ -50,7 +57,17 @@ public class ScheduleCommandDto {
             String title,
             LocalDateTime date,
             String place,
-            ScheduleRepeat repeat
+            ScheduleRepeat repeat,
+            LocalDate repeatEnd
+    ){}
+
+    @Builder
+    public record ScheduleExcludedRequest(
+            @JsonProperty("schedule_id")
+            Long scheduleId,
+
+            @JsonProperty("excluded_date")
+            LocalDate excludedDate
     ){}
 
     public record MessageResponse(String message) {}
