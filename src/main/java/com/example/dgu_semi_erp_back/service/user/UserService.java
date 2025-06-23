@@ -49,28 +49,52 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
     private final JwtUtil jwtutil;
     private final JPAQueryFactory queryFactory;
     @Override
-    public ClubMemberSearchResponse getUserClubs(String accessToken, Pageable pageable) {
-        String userName = jwtutil.getUsernameFromToken(accessToken);
-        User user = userRepository.findByUsername(userName)
+    public ClubMemberSearchResponse getUserClubs(String username, Pageable pageable) {
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
-        Page<ClubMember> clubMemberPage = clubMemberRepository.findClubMembersByUserId(user.getId(), pageable);
-        List<Long> clubIds = clubMemberPage.stream()
+
+        List<Long> userClubIds = clubMemberRepository.findClubIdsByUserId(user.getId()).stream()
                 .map(cm -> cm.getClub().getId())
                 .collect(Collectors.toList());
-        if (clubIds.isEmpty()) {
+
+        if (userClubIds.isEmpty()) {
             return ClubMemberSearchResponse.builder()
-                    .content(null)
+                    .content(new ArrayList<>())
                     .paginationInfo(new PaginationInfo(
-                            clubMemberPage.getNumber(),
-                            clubMemberPage.getSize(),
-                            clubMemberPage.getTotalPages(),
-                            clubMemberPage.getTotalElements()
+                            pageable.getPageNumber(),
+                            pageable.getPageSize(),
+                            0,
+                            0
                     ))
                     .build();
         }
+
         QClub qClub = QClub.club;
+
+        List<Long> pagedClubIds = queryFactory
+                .select(qClub.id)
+                .from(qClub)
+                .where(qClub.id.in(userClubIds))
+                .orderBy(qClub.id.asc()) // 정렬 기준 명시
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        if (pagedClubIds.isEmpty()) {
+            return ClubMemberSearchResponse.builder()
+                    .content(new ArrayList<>())
+                    .paginationInfo(new PaginationInfo(
+                            pageable.getPageNumber(),
+                            pageable.getPageSize(),
+                            0,
+                            0
+                    ))
+                    .build();
+        }
+
         QClubMember qMember = QClubMember.clubMember;
         QUser qUser = QUser.user;
+
         List<Tuple> tuples = queryFactory
                 .select(
                         qClub.id,
@@ -88,14 +112,13 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
                 .from(qClub)
                 .join(qMember).on(qMember.club.id.eq(qClub.id))
                 .join(qUser).on(qMember.user.id.eq(qUser.id))
-                .where(qClub.id.in(clubIds))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .where(qClub.id.in(pagedClubIds))
+                .orderBy(qClub.id.asc())
                 .fetch();
 
         Map<Long, ClubProjection.ClubSummary> clubSummaryMap = new LinkedHashMap<>();
 
-        for(Tuple tuple : tuples){
+        for (Tuple tuple : tuples) {
             Long clubId = tuple.get(qClub.id);
             ClubMemberProjection.ClubMemberSummery member = new ClubMemberProjection.ClubMemberSummery(
                     tuple.get(qMember.id),
@@ -116,15 +139,27 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
             clubSummaryMap.get(clubId).clubMembers().add(member);
         }
 
+        int totalClubs = userClubIds.size();
+        int totalPages = (int) Math.ceil((double) totalClubs / pageable.getPageSize());
+
         return ClubMemberSearchResponse.builder()
                 .content(new ArrayList<>(clubSummaryMap.values()))
                 .paginationInfo(new PaginationInfo(
-                        clubMemberPage.getNumber(),
-                        clubMemberPage.getSize(),
-                        clubMemberPage.getTotalPages(),
-                        clubMemberPage.getTotalElements()
+                        pageable.getPageNumber(),
+                        pageable.getPageSize(),
+                        totalPages,
+                        totalClubs
                 ))
                 .build();
+    }
+    public User getUser(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
+        return user;
+    }
+    public UserResponse getUserInfo(String username) {
+        User user = getUser(username);
+        return UserResponse.builder().id(user.getId()).email(user.getEmail()).name(user.getUsername()).build();
     }
 
     @Override
@@ -136,26 +171,10 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
     }
 
 
-
-
-    @Override
-    public UserResponse getUserByToken(String accessToken) throws UserNotFoundException{
-        String userName = jwtutil.getUsernameFromToken(accessToken);
-        User user = userRepository.findByUsername(userName)
-                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
-        return UserResponse.builder()
-                .id(user.getId())
-                .name(user.getUsername())
-                .email(user.getEmail())
-                .build();
-
-    }
-
-
     @Transactional
     @Override
-    public User updateRole(Long id, UserRoleUpdateRequest request,String accessToken,String refreshToken) throws UserNotFoundException,CustomException {
-        User user = findUserByAccessToken(accessToken);
+    public User updateRole(Long id, UserRoleUpdateRequest request,String username) throws UserNotFoundException,CustomException {
+        User user = getUser(username);
         Club club = clubRepository.findClubIdById(request.clubId()).orElseThrow(() -> new UserNotFoundException("존재하지 않는 동아리입니다."));
         Role userRole = clubMemberRepository.findClubMemberByUserIdAndClubId(user.getId(),request.clubId()).orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다.")).getRole();
         if(userRole==Role.LEADER||userRole==Role.VICE_LEADER|| Objects.equals(user.getId(), id)){
@@ -171,9 +190,9 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
     }
     @Transactional
     @Override
-    public User updateEmail(Long userId,UserEmailUpdateRequest request,String accessToken,String refreshToken) throws UserNotFoundException,CustomException {
+    public User updateEmail(Long userId,UserEmailUpdateRequest request,String username) throws UserNotFoundException,CustomException {
         try{
-            User user = findUserByAccessToken(accessToken);
+            User user = getUser(username);
             User target_user = userRepository.findUserById(userId)
                     .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
             if(Objects.equals(user.getId(), target_user.getId())||user.getRole()== UserRole.ADMIN){
@@ -191,8 +210,8 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
     }
     @Transactional
     @Override
-    public ClubRegisterResponse createClubMember(ClubRegisterRequest clubRegisterRequest,String accessToken,String refreshToken) throws ClubNotFoundException,UserNotFoundException {
-        User user = findUserByAccessToken(accessToken);
+    public ClubRegisterResponse createClubMember(ClubRegisterRequest clubRegisterRequest,String username) throws ClubNotFoundException,UserNotFoundException {
+        User user = getUser(username);
         Club club = clubRepository.findClubIdById(clubRegisterRequest.clubId()).orElseThrow(() -> new ClubNotFoundException("존재하지 않는 동아리입니다."));
         if(clubMemberRepository.existsClubMemberByUserIdAndClubId(user.getId(), club.getId())){
             throw new CustomException(ErrorCode.DUPLICATED_MEMBER);
@@ -206,8 +225,8 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
     }
     @Transactional
     @Override
-    public ClubLeaveResponse leaveClubMember(ClubLeaveRequest clubLeaveRequest,String accessToken,String refreshToken) throws ClubNotFoundException,UserNotFoundException {
-        User user = findUserByAccessToken(accessToken);
+    public ClubLeaveResponse leaveClubMember(ClubLeaveRequest clubLeaveRequest,String username) throws ClubNotFoundException,UserNotFoundException {
+        User user = getUser(username);
         User target_user = userRepository.findUserById(clubLeaveRequest.userId()).orElseThrow(()->new UserNotFoundException("존재하지 않는 사용자입니다."));
         Long clubId = clubLeaveRequest.clubId();
         ClubMember clubMember = clubMemberRepository.findClubMemberByUserIdAndClubId(user.getId(),clubId).orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));;

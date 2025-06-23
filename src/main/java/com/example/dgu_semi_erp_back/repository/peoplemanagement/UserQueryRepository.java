@@ -12,4 +12,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface UserQueryRepository  extends JpaRepository<ClubMember, Long> {
 //    Page<ClubMember> findClubMembers(String clubName, ClubStatus status, Pageable pageable);
     Page<ClubMember> findClubMembersByClubIdAndStatus(Long Id, MemberStatus status, Pageable pageable);
+    Page<ClubMember> findClubMembersByClubId(Long Id, Pageable pageable);
 }
