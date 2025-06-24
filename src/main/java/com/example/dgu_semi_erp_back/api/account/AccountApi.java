@@ -1,10 +1,12 @@
 package com.example.dgu_semi_erp_back.api.account;
 
+import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountClubListResponse;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountUpdateRequest;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountInfoResponse;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountInfoDetailResponse;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateRequest;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateResponse;
+import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateResponse.ClubInfo;
 import com.example.dgu_semi_erp_back.dto.account.AccountHistoryCommandDto.AccountHistoryDetailResponse;
 import com.example.dgu_semi_erp_back.dto.common.PaginationInfo;
 import com.example.dgu_semi_erp_back.exception.AccountNotFoundException;
@@ -53,6 +55,36 @@ public class AccountApi {
         var account = accountUseCase.createAccount(request, username);
 
         return accountMapper.toAccountCreateResponse(account);
+    }
+
+    /**
+     * 통장을 보유한 동아리 목록 조회
+     * @param page 페이지 번호
+     * @param size 페이지 크기
+     */
+    @GetMapping("/clubs")
+    @ResponseStatus(HttpStatus.OK)
+    public AccountClubListResponse getClubsWithAccounts(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "8") int size
+    ) {
+        var pagedAccounts = accountUseCase.getPagedAccounts(page, size);
+
+        return AccountClubListResponse.builder()
+                .clubs(pagedAccounts.getContent().stream()
+                                .map(club -> new ClubInfo(
+                                        club.getId(),
+                                        club.getName(),
+                                        club.getAffiliation()
+                                ))
+                                .toList())
+                .paginationInfo(new PaginationInfo(
+                        pagedAccounts.getNumber(),
+                        pagedAccounts.getSize(),
+                        pagedAccounts.getTotalPages(),
+                        pagedAccounts.getTotalElements()
+                ))
+                .build();
     }
 
     /**

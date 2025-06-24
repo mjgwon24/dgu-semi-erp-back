@@ -1,14 +1,12 @@
 package com.example.dgu_semi_erp_back.dto.account;
 
 import com.example.dgu_semi_erp_back.dto.common.PaginationInfo;
-import com.example.dgu_semi_erp_back.entity.account.Account;
 import com.example.dgu_semi_erp_back.dto.account.AccountHistoryCommandDto.AccountHistoryDetailResponse;
 import com.example.dgu_semi_erp_back.entity.auth.user.UserRole;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public final class AccountCommandDto {
@@ -76,6 +74,12 @@ public final class AccountCommandDto {
             String ownerName,
             String clubName,
             List<AccountHistoryDetailResponse> accountHistories,
+            PaginationInfo paginationInfo
+    ) {}
+
+    @Builder
+    public record AccountClubListResponse(
+            List<AccountCreateResponse.ClubInfo> clubs,
             PaginationInfo paginationInfo
     ) {}
 }

@@ -20,6 +20,7 @@ import com.example.dgu_semi_erp_back.repository.account.AccountHistoryQueryRepos
 import com.example.dgu_semi_erp_back.repository.account.AccountQueryRepository;
 import com.example.dgu_semi_erp_back.repository.auth.UserRepository;
 import com.example.dgu_semi_erp_back.repository.club.ClubMemberRepository;
+import com.example.dgu_semi_erp_back.repository.club.ClubQueryRepository;
 import com.example.dgu_semi_erp_back.repository.club.ClubRepository;
 import com.example.dgu_semi_erp_back.service.notification.NotificationService;
 import com.example.dgu_semi_erp_back.entity.notification.Category;
@@ -46,6 +47,7 @@ public class AccountCommandService implements AccountUseCase {
     private final AccountHistoryQueryRepository accountHistoryQueryRepository;
     private final UserRepository userRepository;
     private final ClubRepository clubRepository;
+    private final ClubQueryRepository clubQueryRepository;
     private final EntityManager entityManager;
     private final AccountMapper accountMapper;
     private final ClubMemberRepository clubMemberRepository;
@@ -212,5 +214,17 @@ public class AccountCommandService implements AccountUseCase {
             "통장이 삭제되었습니다",
             account.getClub().getName() + " 동아리의 통장이 삭제되었습니다."
         );
+    }
+
+    /**
+     * 통장을 보유한 동아리 목록 조회
+     * - account 정보를 보유한 동아리 목록을 페이지 단위로 조회
+     * @param page 페이지 번호 (0부터 시작)
+     * @param size 페이지 크기
+     */
+    @Override
+    public Page<Club> getPagedAccounts(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return clubQueryRepository.getPagedAccounts(pageable);
     }
 }
