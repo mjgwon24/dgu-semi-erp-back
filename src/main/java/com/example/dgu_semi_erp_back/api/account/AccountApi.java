@@ -88,7 +88,7 @@ public class AccountApi {
     }
 
     /**
-     * 통장 정보 조회
+     * 통장 정보 상세 조회
      * @param clubId 동아리 ID
      * @return AccountInfoResponse 통장 번호, 개설일, 소유주 이름, 동아리 이름, (List)통장 거래 내역, PaginationInfo
      */
@@ -98,7 +98,7 @@ public class AccountApi {
             @PathVariable("clubId") Long clubId,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "7") int size
-            ) {
+    ){
         try {
             var account = accountUseCase.getAccountByClubId(clubId);
             var pagedHistories = accountUseCase.getPagedAccountHistories(account.getId(), page, size);
@@ -108,7 +108,7 @@ public class AccountApi {
                     .createdAt(account.getCreatedAt())
                     .ownerName(account.getUser().getUsername())
                     .clubName(account.getClub().getName())
-                    .accountHistories(account.getAccountHistories().stream()
+                    .accountHistories(pagedHistories.getContent().stream()
                             .map(history -> new AccountHistoryDetailResponse(
                                     history.getPayType(),
                                     history.getContent(),
