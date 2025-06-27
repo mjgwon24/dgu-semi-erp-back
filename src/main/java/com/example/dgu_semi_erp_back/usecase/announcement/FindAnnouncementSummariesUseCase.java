@@ -7,10 +7,9 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 
+// 목록 조회시 쓰는 명세
 public interface FindAnnouncementSummariesUseCase {
     Page<AnnouncementSummary> findAnnouncementSummaries(Pageable pageable,
-                                                       String title,
-                                                       String content,
-                                                       LocalDateTime createdAt,
-                                                       LocalDateTime updatedAt);
+                                                       LocalDateTime startDate,
+                                                       LocalDateTime endDate);
 }
