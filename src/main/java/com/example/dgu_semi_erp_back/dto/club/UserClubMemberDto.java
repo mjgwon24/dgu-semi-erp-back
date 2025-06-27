@@ -50,4 +50,8 @@ public final class UserClubMemberDto {
             List<ClubSummary> content,
             PaginationInfo paginationInfo
     ){}
+    @Builder
+    public record ClubSearchResponse(
+            List<ClubProjection.ClubDetail> content
+    ){}
 }

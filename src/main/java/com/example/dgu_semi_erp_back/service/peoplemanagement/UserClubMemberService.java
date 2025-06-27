@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -31,7 +32,10 @@ public class UserClubMemberService {
     private final JPAQueryFactory queryFactory;
     private final ClubRepository clubRepository;
 
-    public UserClubMemberDto.ClubMemberDetailSearchResponse getClubMembers(Long clubId, String status, Pageable pageable) {
+    public UserClubMemberDto.ClubMemberDetailSearchResponse getClubMembers(
+            Long clubId,
+            String status,
+            Pageable pageable) {
         ClubProjection.ClubDetail club = clubRepository.findDetailById(clubId).orElseThrow(()-> new ClubNotFoundException("해당 동아리가 존재하지 않습니다."));
         Page<ClubMember> clubmemberPage;
         if(status!=null) {

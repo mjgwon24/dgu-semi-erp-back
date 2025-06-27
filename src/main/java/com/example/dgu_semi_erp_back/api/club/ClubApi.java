@@ -3,6 +3,8 @@ package com.example.dgu_semi_erp_back.api.club;
 import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.*;
 import com.example.dgu_semi_erp_back.dto.user.UserCommandDto.*;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
+import com.example.dgu_semi_erp_back.entity.club.ClubStatus;
+import com.example.dgu_semi_erp_back.entity.club.MemberStatus;
 import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
 import com.example.dgu_semi_erp_back.service.peoplemanagement.UserClubMemberService;
@@ -34,15 +36,6 @@ public class ClubApi {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping
-    public ResponseEntity<ClubMemberSearchResponse> getClubs(
-            @PageableDefault(size = 5) Pageable pageable,
-            HttpServletRequest req
-    ){
-        String username = (String) req.getAttribute("username");
-        var response = userService.getUserClubs(username,pageable);
-        return ResponseEntity.ok(response);
-    }
     @PostMapping
     public ResponseEntity<ClubRegisterResponse> registerClub(
             @RequestBody ClubRegisterRequest clubRegisterDto,
