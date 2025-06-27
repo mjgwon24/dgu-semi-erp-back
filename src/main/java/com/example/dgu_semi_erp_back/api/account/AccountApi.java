@@ -1,10 +1,12 @@
 package com.example.dgu_semi_erp_back.api.account;
 
+import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountClubListResponse;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountUpdateRequest;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountInfoResponse;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountInfoDetailResponse;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateRequest;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateResponse;
+import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateResponse.ClubInfo;
 import com.example.dgu_semi_erp_back.dto.account.AccountHistoryCommandDto.AccountHistoryDetailResponse;
 import com.example.dgu_semi_erp_back.dto.common.PaginationInfo;
 import com.example.dgu_semi_erp_back.exception.AccountNotFoundException;
@@ -56,7 +58,37 @@ public class AccountApi {
     }
 
     /**
-     * 통장 정보 조회
+     * 통장을 보유한 동아리 목록 조회
+     * @param page 페이지 번호
+     * @param size 페이지 크기
+     */
+    @GetMapping("/clubs")
+    @ResponseStatus(HttpStatus.OK)
+    public AccountClubListResponse getClubsWithAccounts(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "8") int size
+    ) {
+        var pagedAccounts = accountUseCase.getPagedAccounts(page, size);
+
+        return AccountClubListResponse.builder()
+                .clubs(pagedAccounts.getContent().stream()
+                                .map(club -> new ClubInfo(
+                                        club.getId(),
+                                        club.getName(),
+                                        club.getAffiliation()
+                                ))
+                                .toList())
+                .paginationInfo(new PaginationInfo(
+                        pagedAccounts.getNumber(),
+                        pagedAccounts.getSize(),
+                        pagedAccounts.getTotalPages(),
+                        pagedAccounts.getTotalElements()
+                ))
+                .build();
+    }
+
+    /**
+     * 통장 정보 상세 조회
      * @param clubId 동아리 ID
      * @return AccountInfoResponse 통장 번호, 개설일, 소유주 이름, 동아리 이름, (List)통장 거래 내역, PaginationInfo
      */
@@ -66,7 +98,7 @@ public class AccountApi {
             @PathVariable("clubId") Long clubId,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "7") int size
-            ) {
+    ){
         try {
             var account = accountUseCase.getAccountByClubId(clubId);
             var pagedHistories = accountUseCase.getPagedAccountHistories(account.getId(), page, size);
@@ -76,7 +108,7 @@ public class AccountApi {
                     .createdAt(account.getCreatedAt())
                     .ownerName(account.getUser().getUsername())
                     .clubName(account.getClub().getName())
-                    .accountHistories(account.getAccountHistories().stream()
+                    .accountHistories(pagedHistories.getContent().stream()
                             .map(history -> new AccountHistoryDetailResponse(
                                     history.getPayType(),
                                     history.getContent(),
