@@ -121,6 +121,7 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
         for (Tuple tuple : tuples) {
             Long clubId = tuple.get(qClub.id);
             ClubMemberProjection.ClubMemberSummery member = new ClubMemberProjection.ClubMemberSummery(
+                    tuple.get(qUser.id),
                     tuple.get(qMember.id),
                     tuple.get(qUser.username),
                     tuple.get(qUser.major),
