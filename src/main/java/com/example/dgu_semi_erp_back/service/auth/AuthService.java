@@ -17,7 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.example.dgu_semi_erp_back.entity.auth.user.UserRole;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
@@ -113,7 +113,9 @@ public class AuthService {
                 .password(BCrypt.hashpw(signUpRequest.password(), BCrypt.gensalt()))
                 .email(signUpRequest.email())
                 .nickname(signUpRequest.nickname())
-//                .role(Role.MEMBER)
+                .major(signUpRequest.major())
+                .studentNumber(signUpRequest.studentNumber())
+                .role(UserRole.USER)
                 .isVerified(true)
                 .build();
 

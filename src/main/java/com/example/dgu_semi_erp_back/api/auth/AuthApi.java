@@ -54,22 +54,25 @@ public class AuthApi {
     }
 
     @PostMapping("/refreshToken")
-    public ResponseEntity<TokenResponse> reissueRefreshToken(@RequestBody String token, HttpServletResponse response) {
-        // 리프레시 토큰이 DB에 존재하는지 확인하고, 존재할 경우 새로운 액세스 토큰과 리프레시 토큰을 생성
-        TokenResponse tokenResponse = authService.reissueRefreshToken(token);
+    public ResponseEntity<TokenResponse> reissueRefreshToken(
+            @CookieValue(name = "refresh_token", required = false) String refreshToken,
+            HttpServletResponse response
+    ) {
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            throw new RuntimeException("Refresh Token 쿠키가 존재하지 않습니다.");
+        }
 
-        // 리프레시 토큰을 쿠키에 저장
+        TokenResponse tokenResponse = authService.reissueRefreshToken(refreshToken);
+
         Cookie cookie = createCookie(tokenResponse.refreshToken());
-        // 응답에 쿠키 추가
         response.addCookie(cookie);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(TokenResponse.builder()
+        return ResponseEntity.ok(
+                TokenResponse.builder()
                         .accessToken(tokenResponse.accessToken())
-                        .build());
+                        .build()
+        );
     }
-
     private Cookie createCookie(String refreshToken) {
         Cookie cookie = new Cookie("refresh_token", refreshToken);
         cookie.setHttpOnly(true); // HTTP Only 옵션 설정

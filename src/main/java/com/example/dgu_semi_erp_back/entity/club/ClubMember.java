@@ -43,4 +43,12 @@ public class ClubMember {
         this.status = status;
     }
 
+    public ClubMember(User user, Club club, Role role, MemberStatus status) {
+        this.user = user;
+        this.club = club;
+        this.role = role;
+        this.status = status;
+        this.registeredAt = LocalDateTime.now();
+    }
+
 }
