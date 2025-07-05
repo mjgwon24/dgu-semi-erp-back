@@ -4,6 +4,7 @@ import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.*;
 import com.example.dgu_semi_erp_back.dto.user.UserCommandDto.*;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
 import com.example.dgu_semi_erp_back.entity.club.ClubStatus;
+import com.example.dgu_semi_erp_back.entity.club.MemberStatus;
 import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
 import com.example.dgu_semi_erp_back.projection.club.ClubProjection.ClubSummary;
@@ -47,10 +48,30 @@ public class UserApi {
     @GetMapping("/me/club")
     public ResponseEntity<ClubMemberSearchResponse> getClubs(
             @PageableDefault(size = 5) Pageable pageable,
+            @RequestParam(required = false) Long currentPeopleMin,
+            @RequestParam(required = false) Long currentPeopleMax,
+            @RequestParam(required = false) Long totalPeopleMin,
+            @RequestParam(required = false) Long totalPeopleMax,
+            @RequestParam(required = false) String clubName,
+            @RequestParam(required = false) ClubStatus status,
             HttpServletRequest request
     ){
         String username = (String) request.getAttribute("username");
-        var response = userService.getUserClubs(username,pageable);
+        var response = userService.getUserClubs(username,currentPeopleMin,currentPeopleMax,totalPeopleMin,totalPeopleMax,clubName,status,pageable);
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/me/club/all")
+    public ResponseEntity<ClubSearchResponse> getAllClubs(
+            @RequestParam(required = false) Long currentPeopleMin,
+            @RequestParam(required = false) Long currentPeopleMax,
+            @RequestParam(required = false) Long totalPeopleMin,
+            @RequestParam(required = false) Long totalPeopleMax,
+            @RequestParam(required = false) String clubName,
+            @RequestParam(required = false) ClubStatus status,
+            HttpServletRequest req
+    ){
+        String username = (String) req.getAttribute("username");
+        var response = userService.getAllClubs(username,currentPeopleMin,currentPeopleMax,totalPeopleMin,totalPeopleMax,clubName,status);
         return ResponseEntity.ok(response);
     }
     @PostMapping("/me/club")

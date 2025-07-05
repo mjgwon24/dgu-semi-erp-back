@@ -24,10 +24,14 @@ import com.example.dgu_semi_erp_back.repository.auth.UserRepository;
 import com.example.dgu_semi_erp_back.usecase.club.ClubMemberCreateUseCase;
 import com.example.dgu_semi_erp_back.usecase.club.ClubMemberUpdateUseCase;
 import com.example.dgu_semi_erp_back.usecase.user.UserUseCase;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.example.dgu_semi_erp_back.entity.auth.user.Major;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +40,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -51,47 +57,141 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
     private final JwtUtil jwtutil;
     private final JPAQueryFactory queryFactory;
     @Override
-    public ClubMemberSearchResponse getUserClubs(String username, Pageable pageable) {
+    public ClubMemberSearchResponse getUserClubs(
+            String username,
+            Long currentPeopleMin,
+            Long currentPeopleMax,
+            Long totalPeopleMin,
+            Long totalPeopleMax,
+            String clubName,
+            ClubStatus status,
+            Pageable pageable) {
+        // pageable이 null이면 전체 조회
+        boolean isUnpaged = (pageable == null);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
 
-        List<Long> userClubIds = clubMemberRepository.findClubIdsByUserId(user.getId()).stream()
-                .map(cm -> cm.getClub().getId())
-                .collect(Collectors.toList());
+        QClubMember cm = QClubMember.clubMember;
+        QClub club = QClub.club;
 
-        if (userClubIds.isEmpty()) {
-            return ClubMemberSearchResponse.builder()
-                    .content(new ArrayList<>())
-                    .paginationInfo(new PaginationInfo(
-                            pageable.getPageNumber(),
-                            pageable.getPageSize(),
-                            0,
-                            0
-                    ))
-                    .build();
-        }
-
-        QClub qClub = QClub.club;
-
-        List<Long> pagedClubIds = queryFactory
-                .select(qClub.id)
-                .from(qClub)
-                .where(qClub.id.in(userClubIds))
-                .orderBy(qClub.id.asc()) // 정렬 기준 명시
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+        List<Long> userClubIds = queryFactory
+                .select(cm.club.id)
+                .from(cm)
+                .where(cm.user.id.eq(user.getId()))
                 .fetch();
 
-        if (pagedClubIds.isEmpty()) {
-            return ClubMemberSearchResponse.builder()
-                    .content(new ArrayList<>())
-                    .paginationInfo(new PaginationInfo(
-                            pageable.getPageNumber(),
-                            pageable.getPageSize(),
-                            0,
-                            0
-                    ))
-                    .build();
+        Map<Long, Long> currentPeopleMap = queryFactory
+                .select(cm.club.id, cm.count())
+                .from(cm)
+                .where(cm.status.eq(MemberStatus.ACTIVE))
+                .groupBy(cm.club.id)
+                .fetch()
+                .stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(0, Long.class),
+                        tuple -> tuple.get(1, Long.class)
+                ));
+
+        Map<Long, Long> totalPeopleMap = queryFactory
+                .select(cm.club.id, cm.count())
+                .from(cm)
+                .groupBy(cm.club.id)
+                .fetch()
+                .stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(0, Long.class),
+                        tuple -> tuple.get(1, Long.class)
+                ));
+
+        List<Long> filteredClubIds = userClubIds.stream()
+                .filter(id -> {
+                    long current = currentPeopleMap.getOrDefault(id, 0L);
+                    long total = totalPeopleMap.getOrDefault(id, 0L);
+                    return (currentPeopleMin == null || current >= currentPeopleMin) &&
+                            (currentPeopleMax == null || current <= currentPeopleMax) &&
+                            (totalPeopleMin == null || total >= totalPeopleMin) &&
+                            (totalPeopleMax == null || total <= totalPeopleMax);
+                })
+                .collect(Collectors.toList());
+
+        if (filteredClubIds.isEmpty()) {
+            if(isUnpaged) {
+                return ClubMemberSearchResponse.builder()
+                        .content(new ArrayList<>())
+                        .paginationInfo(new PaginationInfo(
+                                0,
+                                0,
+                                0,
+                                0
+                        ))
+                        .build();
+            }
+            else{
+                return ClubMemberSearchResponse.builder()
+                        .content(new ArrayList<>())
+                        .paginationInfo(new PaginationInfo(
+                                pageable.getPageNumber(),
+                                pageable.getPageSize(),
+                                0,
+                                0
+                        ))
+                        .build();
+            }
+        }
+
+        BooleanBuilder clubFilter = new BooleanBuilder();
+        clubFilter.and(club.id.in(filteredClubIds));
+        if(clubName != null && !clubName.isBlank()) {
+            clubFilter.and(club.name.eq(clubName));
+        }
+        if(status != null) {
+            clubFilter.and(club.status.eq(status));
+        }
+        List<Long> pagedClubIds;
+        if(isUnpaged) {
+            pagedClubIds = queryFactory
+                    .select(club.id)
+                    .from(club)
+                    .where(clubFilter)
+                    .orderBy(club.id.asc())
+                    .fetch();
+        }
+        else{
+            pagedClubIds = queryFactory
+                    .select(club.id)
+                    .from(club)
+                    .where(clubFilter)
+                    .orderBy(club.id.asc())
+                    .offset(pageable.getOffset())
+                    .limit(pageable.getPageSize())
+                    .fetch();
+        }
+
+
+        if(pagedClubIds.isEmpty()) {
+            if(isUnpaged) {
+                return ClubMemberSearchResponse.builder()
+                        .content(new ArrayList<>())
+                        .paginationInfo(new PaginationInfo(
+                                0,
+                                0,
+                                0,
+                                0
+                        ))
+                        .build();
+            }
+            else{
+                return ClubMemberSearchResponse.builder()
+                        .content(new ArrayList<>())
+                        .paginationInfo(new PaginationInfo(
+                                pageable.getPageNumber(),
+                                pageable.getPageSize(),
+                                0,
+                                0
+                        ))
+                        .build();
+            }
+
         }
 
         QClubMember qMember = QClubMember.clubMember;
@@ -99,10 +199,10 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
 
         List<Tuple> tuples = queryFactory
                 .select(
-                        qClub.id,
-                        qClub.name,
-                        qClub.affiliation,
-                        qClub.status,
+                        club.id,
+                        club.name,
+                        club.affiliation,
+                        club.status,
                         qMember.id,
                         qUser.username,
                         qUser.major,
@@ -111,11 +211,11 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
                         qMember.status,
                         qMember.registeredAt
                 )
-                .from(qClub)
-                .join(qMember).on(qMember.club.id.eq(qClub.id))
+                .from(club)
+                .join(qMember).on(qMember.club.id.eq(club.id))
                 .join(qUser).on(qMember.user.id.eq(qUser.id))
-                .where(qClub.id.in(pagedClubIds))
-                .orderBy(qClub.id.asc())
+                .where(club.id.in(pagedClubIds))
+                .orderBy(club.id.asc())
                 .fetch();
 
         Map<Long, ClubProjection.ClubSummary> clubSummaryMap = new LinkedHashMap<>();
@@ -124,7 +224,6 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
             Long clubId = tuple.get(qClub.id);
             Major majorEnum = tuple.get(qUser.major);
             String majorLabel = majorEnum != null ? majorEnum.getLabel() : null;
-
             ClubMemberProjection.ClubMemberSummery member = new ClubMemberProjection.ClubMemberSummery(
                     tuple.get(qUser.id),
                     tuple.get(qMember.id),
@@ -135,27 +234,172 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
                     tuple.get(qMember.status),
                     tuple.get(qMember.registeredAt)
             );
+
             clubSummaryMap.computeIfAbsent(clubId, id -> new ClubProjection.ClubSummary(
-                    tuple.get(qClub.id),
-                    tuple.get(qClub.name),
-                    tuple.get(qClub.affiliation),
-                    tuple.get(qClub.status),
+                    tuple.get(club.id),
+                    tuple.get(club.name),
+                    tuple.get(club.affiliation),
+                    tuple.get(club.status),
                     new ArrayList<>()
             ));
             clubSummaryMap.get(clubId).clubMembers().add(member);
         }
+        int totalClubs;
+        if(status==null){
+            totalClubs = totalPeopleMap.size();
+        }
+        else if(status==ClubStatus.ACTIVE){
+            totalClubs = currentPeopleMap.size();
+        }
+        else{
+            totalClubs = totalPeopleMap.size()-currentPeopleMap.size();
+        }
+        if(isUnpaged){
+            return ClubMemberSearchResponse.builder()
+                    .content(new ArrayList<>(clubSummaryMap.values()))
+                    .paginationInfo(new PaginationInfo(
+                            0,
+                            0,
+                            0,
+                            totalClubs
+                    ))
+                    .build();
+        }
+        else{
+            int totalPages = (int) Math.ceil((double) totalClubs / pageable.getPageSize());
 
-        int totalClubs = userClubIds.size();
-        int totalPages = (int) Math.ceil((double) totalClubs / pageable.getPageSize());
+            return ClubMemberSearchResponse.builder()
+                    .content(new ArrayList<>(clubSummaryMap.values()))
+                    .paginationInfo(new PaginationInfo(
+                            pageable.getPageNumber(),
+                            pageable.getPageSize(),
+                            totalPages,
+                            totalClubs
+                    ))
+                    .build();
+        }
+    }
+    @Override
+    public ClubSearchResponse getAllClubs(
+            String username,
+            Long currentPeopleMin,
+            Long currentPeopleMax,
+            Long totalPeopleMin,
+            Long totalPeopleMax,
+            String clubName,
+            ClubStatus status) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
 
-        return ClubMemberSearchResponse.builder()
-                .content(new ArrayList<>(clubSummaryMap.values()))
-                .paginationInfo(new PaginationInfo(
-                        pageable.getPageNumber(),
-                        pageable.getPageSize(),
-                        totalPages,
-                        totalClubs
-                ))
+        QClubMember cm = QClubMember.clubMember;
+        QClub club = QClub.club;
+
+        List<Long> userClubIds = queryFactory
+                .select(cm.club.id)
+                .from(cm)
+                .where(cm.user.id.eq(user.getId()))
+                .fetch();
+
+        Map<Long, Long> currentPeopleMap = queryFactory
+                .select(cm.club.id, cm.count())
+                .from(cm)
+                .where(cm.status.eq(MemberStatus.ACTIVE))
+                .groupBy(cm.club.id)
+                .fetch()
+                .stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(0, Long.class),
+                        tuple -> tuple.get(1, Long.class)
+                ));
+
+        Map<Long, Long> totalPeopleMap = queryFactory
+                .select(cm.club.id, cm.count())
+                .from(cm)
+                .groupBy(cm.club.id)
+                .fetch()
+                .stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(0, Long.class),
+                        tuple -> tuple.get(1, Long.class)
+                ));
+
+        List<Long> filteredClubIds = userClubIds.stream()
+                .filter(id -> {
+                    long current = currentPeopleMap.getOrDefault(id, 0L);
+                    long total = totalPeopleMap.getOrDefault(id, 0L);
+                    return (currentPeopleMin == null || current >= currentPeopleMin) &&
+                            (currentPeopleMax == null || current <= currentPeopleMax) &&
+                            (totalPeopleMin == null || total >= totalPeopleMin) &&
+                            (totalPeopleMax == null || total <= totalPeopleMax);
+                })
+                .collect(Collectors.toList());
+
+        if (filteredClubIds.isEmpty()) {
+            return ClubSearchResponse.builder()
+                    .content(new ArrayList<>())
+                    .build();
+        }
+
+        BooleanBuilder clubFilter = new BooleanBuilder();
+        clubFilter.and(club.id.in(filteredClubIds));
+        if(clubName != null && !clubName.isBlank()) {
+            clubFilter.and(club.name.eq(clubName));
+        }
+        if(status != null) {
+            clubFilter.and(club.status.eq(status));
+        }
+        List<Long> pagedClubIds = queryFactory
+                .select(club.id)
+                .from(club)
+                .where(clubFilter)
+                .orderBy(club.id.asc())
+                .fetch();
+
+
+        if(pagedClubIds.isEmpty()) {
+            return ClubSearchResponse.builder()
+                .content(new ArrayList<>())
+                .build();
+
+        }
+
+        QClubMember qMember = QClubMember.clubMember;
+        QUser qUser = QUser.user;
+
+        List<Tuple> tuples = queryFactory
+                .select(
+                        club.id,
+                        club.name,
+                        club.affiliation,
+                        club.status,
+                        qMember.id,
+                        qUser.username,
+                        qUser.major,
+                        qUser.studentNumber,
+                        qMember.role,
+                        qMember.status,
+                        qMember.registeredAt
+                )
+                .from(club)
+                .join(qMember).on(qMember.club.id.eq(club.id))
+                .join(qUser).on(qMember.user.id.eq(qUser.id))
+                .where(club.id.in(pagedClubIds))
+                .orderBy(club.id.asc())
+                .fetch();
+
+        Map<Long, ClubProjection.ClubDetail> clubDetailMap = new LinkedHashMap<>();
+
+        for (Tuple tuple : tuples) {
+            Long clubId = tuple.get(club.id);
+            clubDetailMap.computeIfAbsent(clubId, id -> new ClubProjection.ClubDetail(
+                    tuple.get(club.id),
+                    tuple.get(club.name),
+                    tuple.get(club.affiliation),
+                    tuple.get(club.status)
+            ));
+        }
+        return ClubSearchResponse.builder()
+                .content(new ArrayList<>(clubDetailMap.values()))
                 .build();
     }
     public User getUser(String username) {

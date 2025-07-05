@@ -26,24 +26,24 @@ public class AnnouncementApi {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
+    // 상세 조회
     public Announcement findById(@PathVariable Long id) {
         return announcementUseCase.findAnnouncementById(id);
     }
+
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
+    // 목록 조회
     public AnnouncementSummariesListResponse getAnnouncementSummaries(
-            @PageableDefault(size = 5) Pageable pageable,
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) String content,
-            @RequestParam(required = false) LocalDateTime createdAt,
-            @RequestParam(required = false) LocalDateTime updatedAt
+            @PageableDefault(size = 5) Pageable pageable, // 한 페이지에 조회되는 목록의 수
+            // 파라미터 조회에서 비어있어도 무관함.
+            @RequestParam(required = false) LocalDateTime startDate,
+            @RequestParam(required = false) LocalDateTime endDate
     ) {
         var announcementPage = findAnnouncementSummariesUseCase.findAnnouncementSummaries(
                 pageable,
-                title,
-                content,
-                createdAt,
-                updatedAt
+                startDate,
+                endDate
         );
         var announcementResponses = announcementDtoMapper.toSummaryResponseList(announcementPage.getContent());
 
