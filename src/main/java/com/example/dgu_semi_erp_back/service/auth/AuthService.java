@@ -5,6 +5,7 @@ import com.example.dgu_semi_erp_back.dto.auth.SignUpRequest;
 import com.example.dgu_semi_erp_back.dto.auth.TokenResponse;
 import com.example.dgu_semi_erp_back.dto.auth.VerifyOtpRequest;
 import com.example.dgu_semi_erp_back.entity.auth.RefreshToken;
+import com.example.dgu_semi_erp_back.entity.auth.user.Major;
 import com.example.dgu_semi_erp_back.entity.club.Role;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
 import com.example.dgu_semi_erp_back.entity.auth.VerifiedEmail;
@@ -17,7 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.example.dgu_semi_erp_back.entity.auth.user.UserRole;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
@@ -113,7 +114,9 @@ public class AuthService {
                 .password(BCrypt.hashpw(signUpRequest.password(), BCrypt.gensalt()))
                 .email(signUpRequest.email())
                 .nickname(signUpRequest.nickname())
-//                .role(Role.MEMBER)
+                .major(Major.valueOf(signUpRequest.major()))
+                .studentNumber(signUpRequest.studentNumber())
+                .role(UserRole.USER)
                 .isVerified(true)
                 .build();
 

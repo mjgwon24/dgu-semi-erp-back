@@ -23,6 +23,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import com.example.dgu_semi_erp_back.entity.auth.user.Major;
+
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
@@ -108,6 +114,15 @@ public class UserApi {
         return ResponseEntity.ok(UserEmailUpdateResponse.builder().message("수정 완료").email(request.email()).build());
     }
 
-
+    @GetMapping("/majors")
+    public ResponseEntity<List<Map<String, String>>> getAllMajors() {
+        List<Map<String, String>> majors = Arrays.stream(Major.values())
+            .map(major -> Map.of(
+                "name", major.name(),
+                "label", major.getLabel()
+            ))
+            .toList();
+        return ResponseEntity.ok(majors);
+    }
 
 }
