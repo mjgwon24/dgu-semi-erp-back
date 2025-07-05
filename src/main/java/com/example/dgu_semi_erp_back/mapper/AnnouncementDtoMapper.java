@@ -9,6 +9,7 @@ import java.util.List;
 
 import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
 
+// Mapper = DB에 조작을 가할 목적으로 사용
 @Mapper(componentModel = SPRING)
 public interface AnnouncementDtoMapper {
 //    AnnouncementSummariesListResponse toSummaryResponse(AnnouncementSummary summary);

@@ -8,7 +8,10 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
+// Get 전용
 public interface AnnouncementQueryRepository extends JpaRepository<Announcement, Long> {
+    // Detail 조회
     Optional<Announcement> findAnnouncementById(Long id);
+    // 목록 조회
     Page<AnnouncementSummary> findAnnouncementSummariesBy(Pageable pageable);
 }
