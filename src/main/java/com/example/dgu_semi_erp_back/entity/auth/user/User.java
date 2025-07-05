@@ -34,8 +34,9 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private String nickname;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String major;
+    private Major major;
 
     @Column(nullable = false)
     private Integer studentNumber;

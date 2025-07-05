@@ -25,7 +25,9 @@ import com.example.dgu_semi_erp_back.usecase.club.ClubMemberCreateUseCase;
 import com.example.dgu_semi_erp_back.usecase.club.ClubMemberUpdateUseCase;
 import com.example.dgu_semi_erp_back.usecase.user.UserUseCase;
 import com.querydsl.core.Tuple;
+import com.example.dgu_semi_erp_back.entity.auth.user.Major;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -120,11 +122,14 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
 
         for (Tuple tuple : tuples) {
             Long clubId = tuple.get(qClub.id);
+            Major majorEnum = tuple.get(qUser.major);
+            String majorLabel = majorEnum != null ? majorEnum.getLabel() : null;
+
             ClubMemberProjection.ClubMemberSummery member = new ClubMemberProjection.ClubMemberSummery(
                     tuple.get(qUser.id),
                     tuple.get(qMember.id),
                     tuple.get(qUser.username),
-                    tuple.get(qUser.major),
+                    majorLabel,
                     tuple.get(qUser.studentNumber),
                     tuple.get(qMember.role),
                     tuple.get(qMember.status),
@@ -244,5 +249,30 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
         else{
             throw new CustomException(ErrorCode.UNAUTHORIZED_ACCESS);
         }
+    }
+    @Transactional
+    public List<ClubSummary> getAllActiveClubs() {
+        QClub qClub = QClub.club;
+
+        List<ClubSummary> activeClubs = queryFactory
+                .select(Projections.constructor(
+                        ClubProjection.ClubSummary.class,
+                        qClub.id,
+                        qClub.name,
+                        qClub.affiliation,
+                        qClub.status,
+                        Expressions.constant(new ArrayList<ClubMemberProjection.ClubMemberSummery>())
+                ))
+                .from(qClub)
+                .where(qClub.status.eq(ClubStatus.ACTIVE))
+                .fetch();
+
+        return activeClubs;
+    }
+
+    public List<String> getAllMajors() {
+        return Arrays.stream(Major.values())
+                .map(Major::getLabel)
+                .toList();
     }
 }

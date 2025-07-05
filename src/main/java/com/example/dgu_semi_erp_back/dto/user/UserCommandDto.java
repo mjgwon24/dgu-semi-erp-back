@@ -1,4 +1,5 @@
 package com.example.dgu_semi_erp_back.dto.user;
+import com.example.dgu_semi_erp_back.entity.auth.user.Major;
 import com.example.dgu_semi_erp_back.entity.club.Role;
 import com.example.dgu_semi_erp_back.projection.club.ClubProjection;
 import jakarta.validation.constraints.NotNull;
@@ -14,7 +15,7 @@ public final class UserCommandDto{
             String password,
             String email,
             String nickname,
-            String major,
+            Major major,
             Integer studentNumber,
             Role role
     ){}

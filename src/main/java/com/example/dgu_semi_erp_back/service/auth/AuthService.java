@@ -5,6 +5,7 @@ import com.example.dgu_semi_erp_back.dto.auth.SignUpRequest;
 import com.example.dgu_semi_erp_back.dto.auth.TokenResponse;
 import com.example.dgu_semi_erp_back.dto.auth.VerifyOtpRequest;
 import com.example.dgu_semi_erp_back.entity.auth.RefreshToken;
+import com.example.dgu_semi_erp_back.entity.auth.user.Major;
 import com.example.dgu_semi_erp_back.entity.club.Role;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
 import com.example.dgu_semi_erp_back.entity.auth.VerifiedEmail;
@@ -113,7 +114,7 @@ public class AuthService {
                 .password(BCrypt.hashpw(signUpRequest.password(), BCrypt.gensalt()))
                 .email(signUpRequest.email())
                 .nickname(signUpRequest.nickname())
-                .major(signUpRequest.major())
+                .major(Major.valueOf(signUpRequest.major()))
                 .studentNumber(signUpRequest.studentNumber())
                 .role(UserRole.USER)
                 .isVerified(true)
