@@ -72,9 +72,7 @@ public class AccountApi {
             @RequestParam(value = "size", defaultValue = "8") int size,
             @RequestBody(required = false) ClubAccountFilter filter
     ) {
-        ClubAccountFilter actualFilter = filter != null ? filter : ClubAccountFilter.builder().build();
-
-        var pagedAccounts = accountUseCase.getPagedAccountsWithFilter(page, size, actualFilter);
+        var pagedAccounts = accountUseCase.getPagedAccountsWithFilter(page, size, filter);
 
         return AccountClubListResponse.builder()
                 .clubs(pagedAccounts.getContent().stream()
