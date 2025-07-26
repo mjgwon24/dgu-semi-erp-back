@@ -181,26 +181,24 @@ public class ClubQueryRepositoryImpl implements ClubQueryRepository {
             Long minCount,
             Long maxCount
     ) {
-        if (minCount != null) {
-            query.where(
-                    JPAExpressions
-                            .select(clubMember.count())
-                            .from(clubMember)
-                            .where(memberCondition)
-                            .groupBy(clubMember.club.id)
-                            .having(clubMember.count().goe(minCount))
-                            .exists()
-            );
-        }
+        if (minCount != null || maxCount != null) {
+            BooleanBuilder havingCondition = new BooleanBuilder();
 
-        if (maxCount != null) {
+            if (minCount != null) {
+                havingCondition.and(clubMember.count().goe(minCount));
+            }
+
+            if (maxCount != null) {
+                havingCondition.and(clubMember.count().loe(maxCount));
+            }
+
             query.where(
                     JPAExpressions
                             .select(clubMember.count())
                             .from(clubMember)
                             .where(memberCondition)
                             .groupBy(clubMember.club.id)
-                            .having(clubMember.count().loe(maxCount))
+                            .having(havingCondition)
                             .exists()
             );
         }
