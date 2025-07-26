@@ -3,6 +3,7 @@ package com.example.dgu_semi_erp_back.dto.account;
 import com.example.dgu_semi_erp_back.dto.common.PaginationInfo;
 import com.example.dgu_semi_erp_back.dto.account.AccountHistoryCommandDto.AccountHistoryDetailResponse;
 import com.example.dgu_semi_erp_back.entity.auth.user.UserRole;
+import com.example.dgu_semi_erp_back.entity.club.ClubStatus;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
@@ -47,6 +48,16 @@ public final class AccountCommandDto {
                 String affiliation
         ) {}
     }
+
+    @Builder
+    public record ClubAccountFilter(
+            ClubStatus status,
+            String clubName,
+            Integer minActiveMembers,
+            Integer maxActiveMembers,
+            Integer minTotalMembers,
+            Integer maxTotalMembers
+    ) {}
 
     @Builder
     public record AccountUpdateRequest(
