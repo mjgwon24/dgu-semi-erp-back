@@ -1,5 +1,6 @@
 package com.example.dgu_semi_erp_back.api.account;
 
+import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.ClubAccountFilter;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountClubListResponse;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountUpdateRequest;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountInfoResponse;
@@ -9,6 +10,7 @@ import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreate
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateResponse.ClubInfo;
 import com.example.dgu_semi_erp_back.dto.account.AccountHistoryCommandDto.AccountHistoryDetailResponse;
 import com.example.dgu_semi_erp_back.dto.common.PaginationInfo;
+import com.example.dgu_semi_erp_back.entity.club.ClubStatus;
 import com.example.dgu_semi_erp_back.exception.AccountNotFoundException;
 import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
@@ -58,26 +60,30 @@ public class AccountApi {
     }
 
     /**
-     * 통장을 보유한 동아리 목록 조회
+     * 통장을 보유한 동아리 목록 조회 (필터링 포함)
      * @param page 페이지 번호
      * @param size 페이지 크기
+     * @param filter 필터 조건 (동아리 상태, 동아리 이름, 최소/최대 활성 멤버 수, 최소/최대 총 멤버 수)
      */
-    @GetMapping("/clubs")
+    @PostMapping("/clubs/search")
     @ResponseStatus(HttpStatus.OK)
-    public AccountClubListResponse getClubsWithAccounts(
+    public AccountClubListResponse searchClubsWithAccounts(
             @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "8") int size
+            @RequestParam(value = "size", defaultValue = "8") int size,
+            @RequestBody(required = false) ClubAccountFilter filter
     ) {
-        var pagedAccounts = accountUseCase.getPagedAccounts(page, size);
+        ClubAccountFilter actualFilter = filter != null ? filter : ClubAccountFilter.builder().build();
+
+        var pagedAccounts = accountUseCase.getPagedAccountsWithFilter(page, size, actualFilter);
 
         return AccountClubListResponse.builder()
                 .clubs(pagedAccounts.getContent().stream()
-                                .map(club -> new ClubInfo(
-                                        club.getId(),
-                                        club.getName(),
-                                        club.getAffiliation()
-                                ))
-                                .toList())
+                        .map(club -> new ClubInfo(
+                                club.getId(),
+                                club.getName(),
+                                club.getAffiliation()
+                        ))
+                        .toList())
                 .paginationInfo(new PaginationInfo(
                         pagedAccounts.getNumber(),
                         pagedAccounts.getSize(),

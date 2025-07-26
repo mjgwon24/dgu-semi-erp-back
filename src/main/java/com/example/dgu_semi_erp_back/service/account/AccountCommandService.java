@@ -2,6 +2,7 @@ package com.example.dgu_semi_erp_back.service.account;
 
 import com.example.dgu_semi_erp_back.common.exception.CustomException;
 import com.example.dgu_semi_erp_back.common.exception.ErrorCode;
+import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.ClubAccountFilter;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateRequest;
 import com.example.dgu_semi_erp_back.entity.account.Account;
 import com.example.dgu_semi_erp_back.entity.account.AccountHistory;
@@ -226,5 +227,35 @@ public class AccountCommandService implements AccountUseCase {
     public Page<Club> getPagedAccounts(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return clubQueryRepository.getPagedAccounts(pageable);
+    }
+
+    /**
+     * 필터링 조건을 적용하여 통장을 보유한 동아리 목록 조회
+     * @param page 페이지 번호 (0부터 시작)
+     * @param size 페이지 크기
+     * @param filter 필터링 조건
+     */
+    @Override
+    public Page<Club> getPagedAccountsWithFilter(int page, int size, ClubAccountFilter filter) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        // 필터가 null이거나 모든 필드가 null인 경우 기본 조회 메서드 호출
+        if (filter == null || isEmptyFilter(filter)) {
+            return clubQueryRepository.getPagedAccounts(pageable);
+        }
+
+        return clubQueryRepository.getPagedAccountsWithFilter(pageable, filter);
+    }
+
+    /**
+     * 필터 객체의 모든 필드가 null인지 확인
+     */
+    private boolean isEmptyFilter(ClubAccountFilter filter) {
+        return filter.status() == null
+                && (filter.clubName() == null || filter.clubName().trim().isEmpty())
+                && filter.minActiveMembers() == null
+                && filter.maxActiveMembers() == null
+                && filter.minTotalMembers() == null
+                && filter.maxTotalMembers() == null;
     }
 }

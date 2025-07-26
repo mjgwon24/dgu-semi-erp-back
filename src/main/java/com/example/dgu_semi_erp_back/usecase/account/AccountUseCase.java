@@ -1,5 +1,6 @@
 package com.example.dgu_semi_erp_back.usecase.account;
 
+import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.ClubAccountFilter;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountUpdateRequest;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.AccountCreateRequest;
 import com.example.dgu_semi_erp_back.entity.account.Account;
@@ -28,4 +29,6 @@ public interface AccountUseCase {
             int page,
             int size
     );
+
+    Page<Club> getPagedAccountsWithFilter(int page, int size, ClubAccountFilter filter);
 }
