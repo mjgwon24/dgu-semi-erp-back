@@ -3,6 +3,7 @@ package com.example.dgu_semi_erp_back.repository.club;
 import com.example.dgu_semi_erp_back.dto.account.AccountCommandDto.ClubAccountFilter;
 import com.example.dgu_semi_erp_back.entity.account.QAccount;
 import com.example.dgu_semi_erp_back.entity.club.Club;
+import com.example.dgu_semi_erp_back.entity.club.ClubStatus;
 import com.example.dgu_semi_erp_back.entity.club.MemberStatus;
 import com.example.dgu_semi_erp_back.entity.club.QClub;
 import com.example.dgu_semi_erp_back.entity.club.QClubMember;
@@ -34,41 +35,23 @@ public class ClubQueryRepositoryImpl implements ClubQueryRepository {
     public Page<Club> getPagedAccounts(Pageable pageable) {
         QClub club = QClub.club;
         QAccount account = QAccount.account;
-        Instant now = Instant.now();
+
+        BooleanExpression hasActiveAccount = hasActiveAccount(club, account);
 
         List<Club> clubs = queryFactory
                 .selectFrom(club)
-                .where(
-                        queryFactory
-                                .selectOne()
-                                .from(account)
-                                .where(
-                                        account.club.eq(club),
-                                        account.deletedAt.isNull()
-                                                .or(account.deletedAt.gt(now))
-                                )
-                                .exists()
-                )
+                .where(hasActiveAccount)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        long total = queryFactory
-                .selectFrom(club)
-                .where(
-                        queryFactory
-                                .selectOne()
-                                .from(account)
-                                .where(
-                                        account.club.eq(club),
-                                        account.deletedAt.isNull()
-                                                .or(account.deletedAt.gt(now))
-                                )
-                                .exists()
-                )
-                .fetchCount();
+        Long total = queryFactory
+                .select(club.countDistinct())
+                .from(club)
+                .where(hasActiveAccount)
+                .fetchOne();
 
-        return new PageImpl<>(clubs, pageable, total);
+        return new PageImpl<>(clubs, pageable, total != null ? total : 0L);
     }
 
     /**
@@ -83,36 +66,85 @@ public class ClubQueryRepositoryImpl implements ClubQueryRepository {
         QClub club = QClub.club;
         QAccount account = QAccount.account;
         QClubMember clubMember = QClubMember.clubMember;
-        Instant now = Instant.now();
 
-        // 통장을 보유한 동아리 조회
+        // 통장을 보유한 동아리
         BooleanBuilder whereClause = new BooleanBuilder();
-        whereClause.and(
-                JPAExpressions
-                        .selectOne()
-                        .from(account)
-                        .where(
-                                account.club.eq(club),
-                                account.deletedAt.isNull()
-                                        .or(account.deletedAt.gt(now))
-                        )
-                        .exists()
-        );
+        whereClause.and(hasActiveAccount(club, account));
 
-        // 동아리 상태
-        if (filter.status() != null) {
-            whereClause.and(club.status.eq(filter.status()));
+        // 필터 조건
+        BooleanExpression statusCondition = hasStatus(filter.status());
+        BooleanExpression nameCondition = hasNameContaining(filter.clubName());
+
+        if (statusCondition != null) {
+            whereClause.and(statusCondition);
         }
 
-        // 동아리명 (부분 일치)
-        if (StringUtils.hasText(filter.clubName())) {
-            whereClause.and(club.name.containsIgnoreCase(filter.clubName()));
+        if (nameCondition != null) {
+            whereClause.and(nameCondition);
         }
 
-        // 활동 인원 및 누적 인원 필터를 위한 서브쿼리
+        // 기본 쿼리 구성
         JPAQuery<Club> query = queryFactory.selectFrom(club).where(whereClause);
 
-        // 활동 인원 범위
+        // 활동 인원 필터
+        applyActiveMembersFilter(query, club, clubMember, filter);
+
+        // 누적 인원 필터
+        applyTotalMembersFilter(query, club, clubMember, filter);
+
+        List<Club> clubs = query
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        // 카운트 쿼리 구성 (동일한 필터 조건 적용)
+        JPAQuery<Long> countQuery = queryFactory
+                .select(club.countDistinct())
+                .from(club)
+                .where(whereClause);
+
+        applyActiveMembersFilter(countQuery, club, clubMember, filter);
+        applyTotalMembersFilter(countQuery, club, clubMember, filter);
+
+        Long total = countQuery.fetchOne();
+
+        return new PageImpl<>(clubs, pageable, total != null ? total : 0L);
+    }
+
+    /**
+     * 활성화된 통장을 보유한 동아리 조건
+     */
+    private BooleanExpression hasActiveAccount(QClub club, QAccount account) {
+        Instant now = Instant.now();
+        return JPAExpressions
+                .selectOne()
+                .from(account)
+                .where(
+                        account.club.eq(club),
+                        account.deletedAt.isNull()
+                                .or(account.deletedAt.gt(now))
+                )
+                .exists();
+    }
+
+    /**
+     * 동아리 상태 조건
+     */
+    private BooleanExpression hasStatus(ClubStatus status) {
+        return status != null ? QClub.club.status.eq(status) : null;
+    }
+
+    /**
+     * 동아리명 부분 일치 조건
+     */
+    private BooleanExpression hasNameContaining(String name) {
+        return StringUtils.hasText(name) ? QClub.club.name.containsIgnoreCase(name) : null;
+    }
+
+    /**
+     * 활동 인원 필터 적용
+     */
+    private <T> void applyActiveMembersFilter(JPAQuery<T> query, QClub club, QClubMember clubMember, ClubAccountFilter filter) {
         if (filter.minActiveMembers() != null || filter.maxActiveMembers() != null) {
             BooleanExpression activeMembersCondition = club.id.eq(clubMember.club.id)
                     .and(clubMember.status.eq(MemberStatus.ACTIVE));
@@ -122,8 +154,12 @@ public class ClubQueryRepositoryImpl implements ClubQueryRepository {
 
             applyMemberCountFilter(query, club, clubMember, activeMembersCondition, minActive, maxActive);
         }
+    }
 
-        // 누적 인원 범위
+    /**
+     * 누적 인원 필터 적용
+     */
+    private <T> void applyTotalMembersFilter(JPAQuery<T> query, QClub club, QClubMember clubMember, ClubAccountFilter filter) {
         if (filter.minTotalMembers() != null || filter.maxTotalMembers() != null) {
             BooleanExpression totalMembersCondition = club.id.eq(clubMember.club.id);
 
@@ -132,22 +168,13 @@ public class ClubQueryRepositoryImpl implements ClubQueryRepository {
 
             applyMemberCountFilter(query, club, clubMember, totalMembersCondition, minTotal, maxTotal);
         }
-
-        List<Club> clubs = query
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        long total = query.fetchCount();
-
-        return new PageImpl<>(clubs, pageable, total);
     }
 
     /**
      * 회원 수 필터 조건 적용
      */
-    private void applyMemberCountFilter(
-            JPAQuery<Club> query,
+    private <T> void applyMemberCountFilter(
+            JPAQuery<T> query,
             QClub club,
             QClubMember clubMember,
             BooleanExpression memberCondition,
