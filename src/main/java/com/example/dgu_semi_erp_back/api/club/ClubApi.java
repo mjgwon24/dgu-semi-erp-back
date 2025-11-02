@@ -22,6 +22,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/club")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RequiredArgsConstructor
 public class ClubApi {
 

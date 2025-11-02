@@ -8,10 +8,12 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.stereotype.Repository;
+import com.querydsl.core.types.dsl.PathBuilder;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Repository
 public class AnnouncementRepositorySupport extends QuerydslRepositorySupport {
@@ -24,8 +26,8 @@ public class AnnouncementRepositorySupport extends QuerydslRepositorySupport {
     // 페이지에 따라 받아올 필터
     public Page<AnnouncementProjection.AnnouncementSummary> findFilteredAnnouncements(
             Pageable pageable,
-            LocalDateTime startDate,
-            LocalDateTime endDate
+            LocalDate startDate,
+            LocalDate endDate
     ) {
         // 조건
         BooleanExpression conditions = createFilterConditions(
@@ -48,13 +50,14 @@ public class AnnouncementRepositorySupport extends QuerydslRepositorySupport {
                 .limit(pageable.getPageSize()); // 페이지네이션 따라서
 
         // 기간에 따라 Sorting 적용
-        pageable.getSort().forEach(order -> {
-            if (order.isAscending()) {
-                query.orderBy(announcement.createdAt.asc()); // 오름차순
-            } else {
-                query.orderBy(announcement.createdAt.desc()); // 내림차순
-            }
-        });
+        for (Sort.Order order : pageable.getSort()) {
+            PathBuilder<?> pathBuilder = new PathBuilder<>(Announcement.class, "announcement");
+            query.orderBy(
+                    order.isAscending()
+                            ? pathBuilder.getComparable(order.getProperty(), Comparable.class).asc()
+                            : pathBuilder.getComparable(order.getProperty(), Comparable.class).desc()
+            );
+        }
 
         var result = query.fetch();
 
@@ -70,19 +73,24 @@ public class AnnouncementRepositorySupport extends QuerydslRepositorySupport {
 
     // 조건 생성
     private BooleanExpression createFilterConditions(
-//            LocalDateTime createdAt,
-//            LocalDateTime updatedAt
-            LocalDateTime startDate,
-            LocalDateTime endDate
+            LocalDate startDate,
+            LocalDate endDate
     ) {
         BooleanExpression conditions = announcement.isNotNull();
+        conditions = conditions.and(announcement.updatedAt.isNotNull());
+
 
         if (startDate != null && endDate != null) {
-            conditions = conditions.and(announcement.createdAt.between(startDate, endDate));
+            conditions = conditions.and(
+                    announcement.updatedAt.between(
+                            startDate.atStartOfDay(),
+                            endDate.atTime(23, 59, 59)
+                    )
+            );
         } else if (startDate != null) {
-            conditions = conditions.and(announcement.createdAt.goe(startDate));
+            conditions = conditions.and(announcement.updatedAt.goe(startDate.atStartOfDay()));
         } else if (endDate != null) {
-            conditions = conditions.and(announcement.createdAt.loe(endDate));
+            conditions = conditions.and(announcement.updatedAt.loe(endDate.atTime(23,59,59)));
         }
 
         return conditions;

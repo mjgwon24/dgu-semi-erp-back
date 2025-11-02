@@ -5,11 +5,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 // 목록 조회시 쓰는 명세
 public interface FindAnnouncementSummariesUseCase {
     Page<AnnouncementSummary> findAnnouncementSummaries(Pageable pageable,
-                                                       LocalDateTime startDate,
-                                                       LocalDateTime endDate);
+                                                       LocalDate startDate,
+                                                       LocalDate endDate);
 }
