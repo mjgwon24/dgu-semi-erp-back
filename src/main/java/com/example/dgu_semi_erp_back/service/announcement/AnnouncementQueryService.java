@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -48,15 +49,5 @@ public class AnnouncementQueryService implements AnnouncementUseCase, FindAnnoun
                 startDate,
                 endDate
         );
-    }
-
-    @Transactional
-    @Override
-    public void deleteAnnouncement(Long id) {
-        Announcement announcement = announcementRepository.findAnnouncementById(id)
-                .orElseThrow(() -> new AnnouncementNotFoundException("해당 통장이 존재하지 않습니다."));
-
-        announcement.markAsDeleted(Instant.now());
-        announcementCommandRepository.save(announcement);
     }
 }

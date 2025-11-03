@@ -14,6 +14,8 @@ import org.springframework.stereotype.Repository;
 import com.querydsl.core.types.dsl.PathBuilder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Repository
 public class AnnouncementRepositorySupport extends QuerydslRepositorySupport {
@@ -84,13 +86,13 @@ public class AnnouncementRepositorySupport extends QuerydslRepositorySupport {
             conditions = conditions.and(
                     announcement.updatedAt.between(
                             startDate.atStartOfDay(),
-                            endDate.atTime(23, 59, 59)
+                            endDate.atTime(LocalTime.MAX)
                     )
             );
         } else if (startDate != null) {
             conditions = conditions.and(announcement.updatedAt.goe(startDate.atStartOfDay()));
         } else if (endDate != null) {
-            conditions = conditions.and(announcement.updatedAt.loe(endDate.atTime(23,59,59)));
+            conditions = conditions.and(announcement.updatedAt.loe(endDate.atTime(LocalTime.MAX)));
         }
 
         return conditions;

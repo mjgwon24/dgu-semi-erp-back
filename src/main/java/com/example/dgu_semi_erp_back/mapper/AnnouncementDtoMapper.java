@@ -6,7 +6,6 @@ import com.example.dgu_semi_erp_back.dto.announcement.AnnouncementCommandDto.Ann
 import com.example.dgu_semi_erp_back.dto.announcement.AnnouncementQueryDto.AnnouncementSummariesListResponse.AnnouncementSummaryResponse;
 import com.example.dgu_semi_erp_back.entity.announcement.Announcement;
 import com.example.dgu_semi_erp_back.projection.announcement.AnnouncementProjection.AnnouncementSummary;
-import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

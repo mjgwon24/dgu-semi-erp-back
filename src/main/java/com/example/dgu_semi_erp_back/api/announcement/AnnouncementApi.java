@@ -7,10 +7,7 @@ import com.example.dgu_semi_erp_back.dto.announcement.AnnouncementCommandDto.Ann
 import com.example.dgu_semi_erp_back.dto.announcement.AnnouncementCommandDto.AnnouncementUpdateResponse;
 import com.example.dgu_semi_erp_back.entity.announcement.Announcement;
 import com.example.dgu_semi_erp_back.mapper.AnnouncementDtoMapper;
-import com.example.dgu_semi_erp_back.usecase.announcement.AnnouncementUseCase;
-import com.example.dgu_semi_erp_back.usecase.announcement.CreateAnnouncementUseCase;
-import com.example.dgu_semi_erp_back.usecase.announcement.FindAnnouncementSummariesUseCase;
-import com.example.dgu_semi_erp_back.usecase.announcement.UpdateAnnouncementUseCase;
+import com.example.dgu_semi_erp_back.usecase.announcement.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +20,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,6 +30,7 @@ public class AnnouncementApi {
     private final AnnouncementUseCase announcementUseCase;
     private final CreateAnnouncementUseCase createAnnouncementUseCase;
     private final UpdateAnnouncementUseCase updateAnnouncementUseCase;
+    private final DeleteAnnouncementUsecase deleteAnnouncementUseCase;
     private final FindAnnouncementSummariesUseCase findAnnouncementSummariesUseCase;
     private final AnnouncementDtoMapper announcementDtoMapper;
 
@@ -47,7 +46,7 @@ public class AnnouncementApi {
     // 목록 조회
     public AnnouncementSummariesListResponse getAnnouncementSummaries(
             @PageableDefault(sort = "updatedAt", direction = Sort.Direction.DESC, size = 6) Pageable pageable, // 한 페이지에 조회되는 목록의 수
-            // 파라미터 조회에서 비어있어도 무관함.
+            // 파라미터 조회에서 비어있어도 무관함, front에서 date만 주는 관계로
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
@@ -95,7 +94,7 @@ public class AnnouncementApi {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<String> deleteAnnouncement(@PathVariable Long id) {
-        announcementUseCase.deleteAnnouncement(id);
+        deleteAnnouncementUseCase.deleteAnnouncement(id);
         return ResponseEntity.ok("게시물이 삭제되었습니다.");
     }
 }
