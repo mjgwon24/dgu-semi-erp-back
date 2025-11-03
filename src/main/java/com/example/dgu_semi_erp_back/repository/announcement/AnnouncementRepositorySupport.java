@@ -28,8 +28,8 @@ public class AnnouncementRepositorySupport extends QuerydslRepositorySupport {
     // 페이지에 따라 받아올 필터
     public Page<AnnouncementProjection.AnnouncementSummary> findFilteredAnnouncements(
             Pageable pageable,
-            LocalDate startDate,
-            LocalDate endDate
+            LocalDateTime startDate,
+            LocalDateTime endDate
     ) {
         // 조건
         BooleanExpression conditions = createFilterConditions(
@@ -75,8 +75,8 @@ public class AnnouncementRepositorySupport extends QuerydslRepositorySupport {
 
     // 조건 생성
     private BooleanExpression createFilterConditions(
-            LocalDate startDate,
-            LocalDate endDate
+            LocalDateTime startDate,
+            LocalDateTime endDate
     ) {
         BooleanExpression conditions = announcement.isNotNull();
         conditions = conditions.and(announcement.updatedAt.isNotNull());
@@ -85,14 +85,14 @@ public class AnnouncementRepositorySupport extends QuerydslRepositorySupport {
         if (startDate != null && endDate != null) {
             conditions = conditions.and(
                     announcement.updatedAt.between(
-                            startDate.atStartOfDay(),
-                            endDate.atTime(LocalTime.MAX)
+                            startDate.toLocalDate().atStartOfDay(),
+                            endDate.toLocalDate().atTime(LocalTime.MAX)
                     )
             );
         } else if (startDate != null) {
-            conditions = conditions.and(announcement.updatedAt.goe(startDate.atStartOfDay()));
+            conditions = conditions.and(announcement.updatedAt.goe(startDate.toLocalDate().atStartOfDay()));
         } else if (endDate != null) {
-            conditions = conditions.and(announcement.updatedAt.loe(endDate.atTime(LocalTime.MAX)));
+            conditions = conditions.and(announcement.updatedAt.loe(endDate.toLocalDate().atTime(LocalTime.MAX)));
         }
 
         return conditions;

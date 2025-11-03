@@ -11,6 +11,6 @@ import java.time.LocalDateTime;
 // 목록 조회시 쓰는 명세
 public interface FindAnnouncementSummariesUseCase {
     Page<AnnouncementSummary> findAnnouncementSummaries(Pageable pageable,
-                                                       LocalDate startDate,
-                                                       LocalDate endDate);
+                                                       LocalDateTime startDate,
+                                                       LocalDateTime endDate);
 }

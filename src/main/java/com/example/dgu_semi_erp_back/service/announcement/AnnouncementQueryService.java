@@ -41,8 +41,8 @@ public class AnnouncementQueryService implements AnnouncementUseCase, FindAnnoun
     @Override
     public Page<AnnouncementSummary> findAnnouncementSummaries(
             Pageable pageable,
-            LocalDate startDate,
-            LocalDate endDate
+            LocalDateTime startDate,
+            LocalDateTime endDate
     ) {
         return announcementRepositorySupport.findFilteredAnnouncements(
                 pageable,

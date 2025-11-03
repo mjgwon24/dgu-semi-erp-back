@@ -47,8 +47,8 @@ public class AnnouncementApi {
     public AnnouncementSummariesListResponse getAnnouncementSummaries(
             @PageableDefault(sort = "updatedAt", direction = Sort.Direction.DESC, size = 6) Pageable pageable, // 한 페이지에 조회되는 목록의 수
             // 파라미터 조회에서 비어있어도 무관함, front에서 date만 주는 관계로
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate
     ) {
         var announcementPage = findAnnouncementSummariesUseCase.findAnnouncementSummaries(
                 pageable,
