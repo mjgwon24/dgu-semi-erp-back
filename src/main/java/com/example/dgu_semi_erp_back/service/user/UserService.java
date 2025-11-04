@@ -221,7 +221,7 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
         Map<Long, ClubProjection.ClubSummary> clubSummaryMap = new LinkedHashMap<>();
 
         for (Tuple tuple : tuples) {
-            Long clubId = tuple.get(qClub.id);
+            Long clubId = tuple.get(club.id);
             Major majorEnum = tuple.get(qUser.major);
             String majorLabel = majorEnum != null ? majorEnum.getLabel() : null;
             ClubMemberProjection.ClubMemberSummery member = new ClubMemberProjection.ClubMemberSummery(

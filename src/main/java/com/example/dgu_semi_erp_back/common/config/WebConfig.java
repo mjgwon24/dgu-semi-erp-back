@@ -17,14 +17,15 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/post/**")
                 .addPathPatterns("/account/protected/**") // 통장관리 API
                 .addPathPatterns("/user/**")
-                .addPathPatterns("/club/**")
+//                .addPathPatterns("/club/**")
+//                .addPathPatterns("/main")
         ; // JWT 인가가 필요한 경로 설정
     }
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**") // 모든 요청 허용
-                .allowedOrigins("http://localhost:3000") // 프론트 주소
+                .allowedOrigins("http://localhost:3000", "http://localhost:8081") // 프론트 주소
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true); // 쿠키/인증정보 포함시 필요
