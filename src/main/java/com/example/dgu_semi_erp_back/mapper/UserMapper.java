@@ -22,6 +22,10 @@ public interface UserMapper {
         user.changeEmail(request.email());
         return user;
     }
+    default User toEntity(@MappingTarget User user, UserNameUpdateRequest request) {
+        user.changeName(request.username());
+        return user;
+    }
 
     default User toEntity(SignUpRequest request) {
         return User.builder()

@@ -1,5 +1,6 @@
 package com.example.dgu_semi_erp_back.api.user;
 
+import com.example.dgu_semi_erp_back.dto.auth.TokenResponse;
 import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.*;
 import com.example.dgu_semi_erp_back.dto.user.UserCommandDto.*;
 import com.example.dgu_semi_erp_back.entity.auth.user.User;
@@ -8,12 +9,15 @@ import com.example.dgu_semi_erp_back.entity.club.MemberStatus;
 import com.example.dgu_semi_erp_back.exception.ClubNotFoundException;
 import com.example.dgu_semi_erp_back.exception.UserNotFoundException;
 import com.example.dgu_semi_erp_back.projection.club.ClubProjection.ClubSummary;
+import com.example.dgu_semi_erp_back.service.auth.AuthService;
 import com.example.dgu_semi_erp_back.service.peoplemanagement.UserClubMemberService;
 import com.example.dgu_semi_erp_back.service.user.UserService;
 import com.example.dgu_semi_erp_back.usecase.club.ClubMemberCreateUseCase;
 import com.example.dgu_semi_erp_back.usecase.club.ClubMemberUpdateUseCase;
 import com.example.dgu_semi_erp_back.usecase.user.UserUseCase;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +40,7 @@ public class UserApi {
 
     private final UserService userService;
     private final UserUseCase userUseCase;
+    private final AuthService authService;
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getUser(
@@ -61,7 +66,7 @@ public class UserApi {
         return ResponseEntity.ok(response);
     }
     @GetMapping("/me/club/all")
-    public ResponseEntity<ClubSearchResponse> getAllClubs(
+    public ResponseEntity<MemberDetailSearchResponse> getAllClubs(
             @RequestParam(required = false) Long currentPeopleMin,
             @RequestParam(required = false) Long currentPeopleMax,
             @RequestParam(required = false) Long totalPeopleMin,
@@ -103,15 +108,35 @@ public class UserApi {
         userUseCase.updateRole(id,request,username);
         return ResponseEntity.ok(UserRoleUpdateResponse.builder().message("수정 완료").role(request.role()).build());
     }
+    @PatchMapping("/{id}/name")
+    public ResponseEntity<UserNameUpdateResponse> changeUserName(
+            @PathVariable Long id,
+            @RequestBody UserNameUpdateRequest request,
+            HttpServletRequest req,
+            HttpServletResponse response
+    ){
+        String username = (String) req.getAttribute("username");
+        TokenResponse newToken = userUseCase.updateName(id,request,username,response);
+        return ResponseEntity.ok(UserNameUpdateResponse.builder().message("수정 완료").username(request.username()).accessToken(newToken.accessToken()).build());
+    }
     @PatchMapping("/{id}/email")
     public ResponseEntity<UserEmailUpdateResponse> changeUserEmail(
             @PathVariable Long id,
             @RequestBody UserEmailUpdateRequest request,
             HttpServletRequest req
     ){
-        String username = (String) req.getAttribute("username");
-        userUseCase.updateEmail(id,request,username);
+        try {
+            String username = (String) req.getAttribute("username");
+            userUseCase.updateEmail(id, request, username);
+            System.out.println("이메일 수정 완료");
+            return ResponseEntity.ok(UserEmailUpdateResponse.builder().message("수정 완료").email(request.email()).build());
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
         return ResponseEntity.ok(UserEmailUpdateResponse.builder().message("수정 완료").email(request.email()).build());
+
     }
 
     @GetMapping("/majors")

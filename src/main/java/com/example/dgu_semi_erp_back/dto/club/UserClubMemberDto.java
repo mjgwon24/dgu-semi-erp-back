@@ -54,4 +54,9 @@ public final class UserClubMemberDto {
     public record ClubSearchResponse(
             List<ClubProjection.ClubDetail> content
     ){}
+
+    @Builder
+    public record MemberDetailSearchResponse(
+            List<ClubMemberProjection.ClubMemberSummery> content
+    ){}
 }
