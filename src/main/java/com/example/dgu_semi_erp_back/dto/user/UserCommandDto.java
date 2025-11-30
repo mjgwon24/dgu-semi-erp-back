@@ -29,6 +29,10 @@ public final class UserCommandDto{
     public record UserEmailUpdateRequest(
             @NotNull String email
     ){}
+    @Builder
+    public record UserNameUpdateRequest(
+            @NotNull String username
+    ){}
 
     @Builder
     public record UserResponse(
@@ -45,6 +49,12 @@ public final class UserCommandDto{
     public record UserEmailUpdateResponse(
             String message,
             String email
+    ){}
+    @Builder
+    public record UserNameUpdateResponse(
+            String message,
+            String username,
+            String accessToken
     ){}
 }
 

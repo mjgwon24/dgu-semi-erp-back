@@ -3,10 +3,12 @@ package com.example.dgu_semi_erp_back.service.user;
 import com.example.dgu_semi_erp_back.common.exception.CustomException;
 import com.example.dgu_semi_erp_back.common.exception.ErrorCode;
 import com.example.dgu_semi_erp_back.common.jwt.JwtUtil;
+import com.example.dgu_semi_erp_back.dto.auth.TokenResponse;
 import com.example.dgu_semi_erp_back.dto.club.ClubDto.ClubResponse;
 import com.example.dgu_semi_erp_back.dto.club.UserClubMemberDto.*;
 import com.example.dgu_semi_erp_back.dto.common.PaginationInfo;
 import com.example.dgu_semi_erp_back.dto.user.UserCommandDto.*;
+import com.example.dgu_semi_erp_back.entity.auth.RefreshToken;
 import com.example.dgu_semi_erp_back.entity.auth.user.QUser;
 import com.example.dgu_semi_erp_back.entity.auth.user.UserRole;
 import com.example.dgu_semi_erp_back.entity.club.*;
@@ -18,6 +20,7 @@ import com.example.dgu_semi_erp_back.mapper.UserMapper;
 import com.example.dgu_semi_erp_back.projection.club.ClubMemberProjection;
 import com.example.dgu_semi_erp_back.projection.club.ClubProjection;
 import com.example.dgu_semi_erp_back.projection.club.ClubProjection.ClubSummary;
+import com.example.dgu_semi_erp_back.repository.auth.RefreshTokenRepository;
 import com.example.dgu_semi_erp_back.repository.club.ClubMemberRepository;
 import com.example.dgu_semi_erp_back.repository.club.ClubRepository;
 import com.example.dgu_semi_erp_back.repository.auth.UserRepository;
@@ -33,9 +36,13 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
@@ -56,6 +63,8 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
     private final UserClubMemberMapper userClubMemberMapper;
     private final JwtUtil jwtutil;
     private final JPAQueryFactory queryFactory;
+    private final RefreshTokenRepository refreshTokenRepository;
+
     @Override
     public ClubMemberSearchResponse getUserClubs(
             String username,
@@ -280,7 +289,7 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
         }
     }
     @Override
-    public ClubSearchResponse getAllClubs(
+    public MemberDetailSearchResponse getAllClubs(
             String username,
             Long currentPeopleMin,
             Long currentPeopleMax,
@@ -335,7 +344,7 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
                 .collect(Collectors.toList());
 
         if (filteredClubIds.isEmpty()) {
-            return ClubSearchResponse.builder()
+            return MemberDetailSearchResponse.builder()
                     .content(new ArrayList<>())
                     .build();
         }
@@ -357,7 +366,7 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
 
 
         if(pagedClubIds.isEmpty()) {
-            return ClubSearchResponse.builder()
+            return MemberDetailSearchResponse.builder()
                 .content(new ArrayList<>())
                 .build();
 
@@ -387,18 +396,31 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
                 .orderBy(club.id.asc())
                 .fetch();
 
-        Map<Long, ClubProjection.ClubDetail> clubDetailMap = new LinkedHashMap<>();
+        Map<Long, ClubMemberProjection.ClubMemberSummery> clubDetailMap = new LinkedHashMap<>();
 
         for (Tuple tuple : tuples) {
             Long clubId = tuple.get(club.id);
-            clubDetailMap.computeIfAbsent(clubId, id -> new ClubProjection.ClubDetail(
+//            Long userId,         // qUser.id
+//            Long id,             // qMember.id
+//            String name,         // qUser.username
+//            String major,        // qUser.major
+//            Integer studentNumber, // qUser.studentNumber
+//            Role role,           // qMember.role
+//            MemberStatus status, // qMember.status
+//            LocalDateTime registeredAt // qMember.registeredAt
+            clubDetailMap.computeIfAbsent(clubId, id -> new ClubMemberProjection.ClubMemberSummery(
                     tuple.get(club.id),
+                    tuple.get(qMember.id),
                     tuple.get(club.name),
-                    tuple.get(club.affiliation),
-                    tuple.get(club.status)
+                    tuple.get(qUser.major.stringValue()),
+                    tuple.get(qUser.studentNumber),
+                    tuple.get(qMember.role),
+                    tuple.get(qMember.status),
+                    tuple.get(qMember.registeredAt)
+
             ));
         }
-        return ClubSearchResponse.builder()
+        return MemberDetailSearchResponse.builder()
                 .content(new ArrayList<>(clubDetailMap.values()))
                 .build();
     }
@@ -433,6 +455,70 @@ public class UserService implements UserUseCase, ClubMemberCreateUseCase, ClubMe
             ClubMember clubMember = clubMemberRepository.findClubMemberByUserIdAndClubId(target_user.getId(),club.getId()).orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
             ClubMember newClubMember = userClubMemberMapper.toEntity(clubMember,request);
             return clubMemberRepository.save(newClubMember).getUser();
+        }
+        else{
+            throw new CustomException(ErrorCode.UNAUTHORIZED_ACCESS);
+        }
+    }
+    @Transactional
+    @Override
+    public TokenResponse updateName(Long userId, UserNameUpdateRequest request, String username, HttpServletResponse response) throws UserNotFoundException,CustomException {
+        User user = getUser(username);
+        User target_user = userRepository.findUserById(userId)
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
+        if(Objects.equals(user.getId(), target_user.getId())||user.getRole()== UserRole.ADMIN){
+            User newUser = userMapper.toEntity(target_user, request);
+            // 주어진 사용자에 대한 리프레시 토큰이 DB에 존재하는지 확인하고, 존재할 경우 해당 리프레시 토큰 삭제(DB)
+            Optional<RefreshToken> existingRefreshToken = refreshTokenRepository.findByUser(user);
+            existingRefreshToken.ifPresent(refreshTokenRepository::delete);
+
+            // 새로운 액세스 토큰 생성
+            String accessToken = jwtutil.createAccessToken(newUser);
+
+            // 새로운 리프레시 토큰 생성
+            String refreshToken = jwtutil.createRefreshToken(newUser);
+
+            RefreshToken refreshTokenEntity = RefreshToken.builder()
+                    .user(newUser)
+                    .token(refreshToken)
+                    .build();
+
+            // 리프레시 토큰 저장(DB)
+            refreshTokenRepository.save(refreshTokenEntity);
+
+            TokenResponse newToken = TokenResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .build();
+            Cookie cookie = new Cookie("refresh_token", newToken.refreshToken());
+            cookie.setHttpOnly(true); // HTTP Only 옵션 설정
+            cookie.setSecure(true); // Secure 옵션 설정 (HTTPS 환경에서만 전송)
+            cookie.setPath("/"); // 쿠키가 유효한 경로 설정
+            cookie.setMaxAge(7 * 24 * 60 * 60); // 쿠키의 유효 기간 설정 (예: 7일)
+            response.addCookie(cookie);
+            userRepository.save(newUser);
+            return TokenResponse.builder()
+                    .accessToken(newToken.accessToken())
+                    .build();
+//            return userRepository.save(newUser);
+//            // 새로운 액세스 토큰 생성
+//            String accessToken = jwtUtil.createAccessToken(user);
+//
+//            // 새로운 리프레시 토큰 생성
+//            String refreshToken = jwtUtil.createRefreshToken(user);
+//
+//            RefreshToken refreshTokenEntity = RefreshToken.builder()
+//                    .user(user)
+//                    .token(refreshToken)
+//                    .build();
+//
+//            // 리프레시 토큰 저장(DB)
+//            refreshTokenRepository.save(refreshTokenEntity);
+//
+//            return TokenResponse.builder()
+//                    .accessToken(accessToken)
+//                    .refreshToken(refreshToken)
+//                    .build();
         }
         else{
             throw new CustomException(ErrorCode.UNAUTHORIZED_ACCESS);
